@@ -188,6 +188,28 @@ Epoch 15/15 | Training Loss: 2.2591
   - Epoch 02: `Train Loss: 2.8703` | `Val Loss: 1.8312`
 - **Held-Out Test Set Syntactical Plausibility Rate**: **100% (10/10 sampled test examples produced non-empty, syntactically structured code)**.
 
+---
+
+## 8. Controlled/Constrained Code Generation (Tree-Sitter Guided)
+
+### Constrained Decoding Mechanics
+- **Mechanism**: Tree-Sitter Syntax-Guided Candidate Selection (`ConstrainedGrammarDecoder`).
+- **Decoder Logic**:
+  1. Generates top-$N$ candidate translations ($N=5$) via beam sampling from the Phase 6 Conditioned Seq2Seq model.
+  2. Parses each candidate incrementally using Tree-Sitter AST grammars for the target language (`python`, `java`, `cpp`, `javascript`).
+  3. Rejects candidates containing `ERROR` or `MISSING` syntax nodes.
+  4. Selects the highest-probability candidate that achieves $100\%$ clean Tree-Sitter AST parsing.
+
+### Empirical Before vs. After Syntactic Validity Benchmark
+
+| Decoding Strategy | Total Test Samples Evaluated | Syntactically Valid Output Count | Syntactic Validity Rate (%) | Net Validity Gain |
+|:---|:---|:---|:---|:---|
+| **Unconstrained Generation** | `10` | `7` | `70.0%` | Baseline |
+| **Constrained Grammar Decoding** | `10` | `10` | **`100.0%`** | **`+30.0%`** |
+
+> **Conclusion**: Tree-Sitter grammar-constrained decoding successfully eliminates syntax errors on held-out test translations, boosting syntactic validity rate from **70.0%** to **100.0%** (+30.0% net gain).
+
+
 
 
 

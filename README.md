@@ -11,7 +11,9 @@ Rosetta AI is an automated code translation and benchmarking framework designed 
 - [x] Phase 4: GNN AST Structural Representation (PyTorch Geometric)
 - [x] Phase 5: Fused Semantic Representation & 3-Way Benchmark
 - [x] Phase 6: Conditioned Seq2Seq Transformer Translation Model
-- [ ] Phase 7: Evaluation Suite & Benchmark Pipeline
+- [x] Phase 7: Controlled/Constrained Code Generation (Tree-Sitter Guided)
+- [ ] Phase 8: Evaluation Suite & Multi-LLM Benchmark Pipeline
+
 
 
 
