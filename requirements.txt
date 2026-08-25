@@ -5,4 +5,7 @@ datasets
 requests
 openai
 tqdm
+transformers
+accelerate
+
 
