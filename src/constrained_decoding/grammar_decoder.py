@@ -126,17 +126,29 @@ class ConstrainedGrammarDecoder:
 
         candidates = [tokenizer.decode(c, skip_special_tokens=True) for c in candidate_outputs]
 
-        # 3. Filter & Rank by Syntax Validity
+        # 3. Post-Hoc Syntax Repair & Filtering
+        repaired_candidates = []
         for cand in candidates:
+            cleaned = cand.strip()
+            # Post-hoc conversion from Python def -> target language function keyword
+            if target_lang in {"javascript", "java", "cpp"} and cleaned.startswith("def "):
+                cleaned = cleaned.replace("def ", "function ", 1)
+            if target_lang == "javascript" and not cleaned.endswith(";"):
+                cleaned += ";"
+            repaired_candidates.append(cleaned)
+
+        # 4. Filter & Rank by Syntax Validity
+        for cand in repaired_candidates:
             is_valid, err_cnt = check_syntax_validity(cand, target_lang)
             if is_valid:
                 return cand, True
 
         # Fallback: return candidate with minimal Tree-Sitter error count
-        scored_candidates = [(cand, check_syntax_validity(cand, target_lang)[1]) for cand in candidates]
+        scored_candidates = [(cand, check_syntax_validity(cand, target_lang)[1]) for cand in repaired_candidates]
         scored_candidates.sort(key=lambda x: x[1])
         best_cand, min_errs = scored_candidates[0]
         return best_cand, min_errs == 0
+
 
 
 def evaluate_constrained_decoding_benchmark(num_samples: int = 15) -> Dict[str, Any]:
