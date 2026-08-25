@@ -118,9 +118,9 @@ class ConstrainedGrammarDecoder:
             candidate_outputs = self.seq2seq_model.seq2seq_model.generate(
                 inputs_embeds=conditioned_embeds,
                 attention_mask=conditioned_mask,
-                max_length=256,
+                max_length=128,
                 num_return_sequences=num_candidates,
-                num_beams=max(num_candidates, 4),
+                num_beams=max(num_candidates, 1),
                 early_stopping=True
             )
 

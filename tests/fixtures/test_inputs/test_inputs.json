@@ -1,0 +1,102 @@
+{
+  "binary_search": [
+    {"arr": [1, 3, 5, 7, 9], "target": 7},
+    {"arr": [1, 3, 5, 7, 9], "target": 4},
+    {"arr": [], "target": 5},
+    {"arr": [10, 20, 30, 40, 50, 60, 70, 80], "target": 60}
+  ],
+  "bubble_sort": [
+    {"arr": [5, 2, 8, 1, 9]},
+    {"arr": [1, 2, 3, 4, 5]},
+    {"arr": [5, 4, 3, 2, 1]},
+    {"arr": [42]}
+  ],
+  "factorial_recursive": [
+    {"n": 5},
+    {"n": 0},
+    {"n": 1},
+    {"n": 10}
+  ],
+  "fibonacci_iterative": [
+    {"n": 10},
+    {"n": 0},
+    {"n": 1},
+    {"n": 15}
+  ],
+  "gcd_euclidean": [
+    {"a": 48, "b": 18},
+    {"a": 101, "b": 103},
+    {"a": 0, "b": 5},
+    {"a": 270, "b": 192}
+  ],
+  "insertion_sort": [
+    {"arr": [4, 3, 2, 1]},
+    {"arr": [1, 2, 3, 4]},
+    {"arr": [10, -5, 0, 7]},
+    {"arr": [42]}
+  ],
+  "is_prime": [
+    {"n": 29},
+    {"n": 1},
+    {"n": 0},
+    {"n": 2}
+  ],
+  "linear_search": [
+    {"arr": [10, 20, 30, 40], "target": 30},
+    {"arr": [10, 20, 30], "target": 99},
+    {"arr": [], "target": 5}
+  ],
+  "linked_list_node": [
+    {"items": [1, 2, 3]},
+    {"items": [5]},
+    {"items": [10, 20, 30]}
+  ],
+  "lru_cache_meta": [
+    {"cap": 2, "ops": [["put", 1, 10], ["put", 2, 20], ["get", 1]]}
+  ],
+  "matrix_multiplication": [
+    {"A": [[1, 2], [3, 4]], "B": [[2, 0], [1, 2]]}
+  ],
+  "max_subarray_kadane": [
+    {"nums": [-2, 1, -3, 4, -1, 2, 1, -5, 4]},
+    {"nums": [-1, -2, -3]},
+    {"nums": [5, 4, 3]}
+  ],
+  "merge_sort": [
+    {"arr": [38, 27, 43, 3, 9, 82, 10]},
+    {"arr": [1]},
+    {"arr": [5, 4, 3, 2, 1]}
+  ],
+  "palindrome_check": [
+    {"s": "racecar"},
+    {"s": "hello"},
+    {"s": ""},
+    {"s": "a"}
+  ],
+  "power_exponentiation": [
+    {"base": 2, "exp": 10},
+    {"base": 5, "exp": 0},
+    {"base": 3, "exp": 4}
+  ],
+  "queue_array": [
+    {"ops": [["enqueue", 10], ["enqueue", 20], ["dequeue"]]}
+  ],
+  "quick_sort": [
+    {"arr": [10, 7, 8, 9, 1, 5]},
+    {"arr": [1]},
+    {"arr": [3, 3, 3]}
+  ],
+  "reverse_string": [
+    {"s": "hello"},
+    {"s": ""},
+    {"s": "a"}
+  ],
+  "selection_sort": [
+    {"arr": [64, 25, 12, 22, 11]},
+    {"arr": [1]},
+    {"arr": [5, 4, 3, 2, 1]}
+  ],
+  "stack_array": [
+    {"ops": [["push", 10], ["push", 20], ["pop"]]}
+  ]
+}
