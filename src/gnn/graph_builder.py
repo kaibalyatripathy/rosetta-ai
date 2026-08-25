@@ -1,17 +1,20 @@
 """
-AST Graph Builder for Rosetta AI.
+PyTorch Geometric (PyG) & AST Graph Builder for Tree-Sitter AST Graphs.
 
-Parses source code in Python, Java, C++, and JavaScript into Abstract Syntax Tree (AST) graphs.
-Extracts:
-1. AST Node Types (e.g., FunctionDef, Assign, For, If, Variable, Literal, Operator)
-2. Parent-Child Structural Edges
-3. Next-Token Control Flow Edges
-4. Variable-Usage Data Flow Edges
+Converts Tree-Sitter AST structures (from Phase 3) into PyTorch Geometric `Data` objects and ASTGraph structures:
+- Node features (x): AST node types mapped to integer vocabulary indices
+- Edge index (edge_index): 2xE directed edge tensor (parent-child, next-token, data-flow)
 """
 
-import ast
-import re
 from typing import Dict, List, Tuple, Any, Optional
+from src.ast_analysis.parsers import get_parser, LANG_MAP
+
+try:
+    import torch
+    from torch_geometric.data import Data
+    PYG_AVAILABLE = True
+except ImportError:
+    PYG_AVAILABLE = False
 
 
 class ASTNode:
@@ -43,7 +46,6 @@ class ASTGraph:
         return len(self.nodes)
 
     def add_node(self, label: str, node_type: str, value: Optional[str] = None) -> int:
-
         node_id = len(self.nodes)
         node = ASTNode(node_id, label, node_type, value)
         self.nodes.append(node)
@@ -71,107 +73,111 @@ class ASTGraph:
         }
 
 
-class PythonASTGraphBuilder:
-    """Constructs AST graphs from Python code using standard ast module."""
-    
-    @staticmethod
-    def build(code: str) -> ASTGraph:
-        graph = ASTGraph("python")
-        try:
-            tree = ast.parse(code)
-        except Exception:
-            # Fallback for code fragments
-            root_id = graph.add_node("ModuleFragment", "Module")
-            tokens = [t for t in re.split(r'\s+|([{}()\[\];,])', code) if t and t.strip()]
-            prev_id = root_id
-            for tok in tokens[:50]:
-                n_id = graph.add_node(tok, "Token", tok)
-                graph.add_edge(prev_id, n_id, "child")
-                prev_id = n_id
-            return graph
-
-        def _traverse(node, parent_id: Optional[int] = None) -> int:
-            node_type = type(node).__name__
-            label = node_type
-            val = None
-
-            if isinstance(node, ast.Name):
-                val = node.id
-                label = f"Name({val})"
-            elif isinstance(node, ast.Constant):
-                val = str(node.value)
-                label = f"Constant({val})"
-            elif isinstance(node, ast.FunctionDef):
-                val = node.name
-                label = f"FunctionDef({val})"
-
-            node_id = graph.add_node(label, node_type, val)
-            if parent_id is not None:
-                graph.add_edge(parent_id, node_id, "child")
-
-            for child in ast.iter_child_nodes(node):
-                _traverse(child, node_id)
-
-            return node_id
-
-        _traverse(tree)
-        return graph
-
-
-class GenericASTGraphBuilder:
-    """Constructs tokenized AST representations for Java, C++, and JavaScript."""
-    
-    @staticmethod
-    def build(code: str, language: str) -> ASTGraph:
-        graph = ASTGraph(language)
-        root_id = graph.add_node(f"Root_{language.upper()}", "Root")
-        
-        # Tokenize code into keywords, identifiers, symbols
-        tokens = [t for t in re.split(r'(\s+|[{}()\[\];,+\-*/=><!&|])', code) if t and t.strip()]
-        
-        prev_id = root_id
-        var_last_seen: Dict[str, int] = {}
-
-        for tok in tokens:
-            if tok in {"class", "public", "private", "static", "void", "int", "double", "bool", "boolean", "function", "let", "const", "var", "def", "return", "if", "else", "for", "while"}:
-                n_type = "Keyword"
-            elif re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', tok):
-                n_type = "Identifier"
-            elif re.match(r'^\d+$', tok):
-                n_type = "Literal"
-            else:
-                n_type = "Symbol"
-
-            node_id = graph.add_node(tok, n_type, tok)
-            graph.add_edge(root_id, node_id, "child")
-            graph.add_edge(prev_id, node_id, "next_token")
-            
-            if n_type == "Identifier":
-                if tok in var_last_seen:
-                    graph.add_edge(var_last_seen[tok], node_id, "data_flow")
-                var_last_seen[tok] = node_id
-
-            prev_id = node_id
-
-        return graph
-
-
 def build_ast_graph(code: str, language: str) -> ASTGraph:
-    """Factory function to build an AST graph for any supported language."""
-    lang = language.lower().strip()
-    if lang == "python":
-        return PythonASTGraphBuilder.build(code)
-    elif lang in {"java", "cpp", "c++", "javascript", "js"}:
-        return GenericASTGraphBuilder.build(code, lang)
+    """
+    Constructs an ASTGraph instance for a given code snippet using Tree-Sitter.
+    """
+    norm_lang = LANG_MAP.get(language.lower().strip(), language.lower().strip())
+    parser = get_parser(norm_lang)
+    graph = ASTGraph(norm_lang)
+
+    code_bytes = code.encode("utf-8")
+    tree = parser.parse(code_bytes)
+    root = tree.root_node
+
+    def _traverse(node, parent_id: Optional[int] = None) -> int:
+        text_val = code_bytes[node.start_byte:node.end_byte].decode("utf-8", errors="replace").strip()
+        n_id = graph.add_node(node.type, node.type, text_val)
+        if parent_id is not None:
+            graph.add_edge(parent_id, n_id, "child")
+        for child in node.children:
+            _traverse(child, n_id)
+        return n_id
+
+    _traverse(root)
+    return graph
+
+
+# AST Node Type Vocabulary Mapping
+NODE_TYPE_VOCAB: Dict[str, int] = {
+    "module": 1,
+    "program": 2,
+    "function_definition": 3,
+    "function_declaration": 4,
+    "method_declaration": 5,
+    "method_definition": 6,
+    "parameters": 7,
+    "formal_parameters": 8,
+    "parameter_list": 9,
+    "identifier": 10,
+    "type_identifier": 11,
+    "for_statement": 12,
+    "while_statement": 13,
+    "do_statement": 14,
+    "if_statement": 15,
+    "else_clause": 16,
+    "binary_operator": 17,
+    "binary_expression": 18,
+    "return_statement": 19,
+    "call": 20,
+    "call_expression": 21,
+    "method_invocation": 22,
+    "assignment": 23,
+    "expression_statement": 24,
+    "primitive_type": 25,
+    "number_literal": 26,
+    "string_literal": 27,
+    "comment": 28,
+    "UNKNOWN": 99
+}
+
+
+def build_pyg_ast_graph(code: str, lang: str, label: Optional[int] = None) -> Any:
+    """
+    Parses code snippet via Tree-Sitter and constructs a PyTorch Geometric Data object.
+    """
+    if not PYG_AVAILABLE:
+        raise ImportError("PyTorch or PyTorch Geometric is not installed.")
+
+    norm_lang = LANG_MAP.get(lang.lower().strip(), lang.lower().strip())
+    parser = get_parser(norm_lang)
+
+    code_bytes = code.encode("utf-8")
+    tree = parser.parse(code_bytes)
+    root = tree.root_node
+
+    node_types: List[int] = []
+    edges_src: List[int] = []
+    edges_dst: List[int] = []
+
+    def _traverse(node) -> int:
+        current_id = len(node_types)
+        ntype = node.type
+        type_id = NODE_TYPE_VOCAB.get(ntype, NODE_TYPE_VOCAB["UNKNOWN"])
+        node_types.append(type_id)
+
+        for child in node.children:
+            child_id = _traverse(child)
+            # Parent-Child edge
+            edges_src.append(current_id)
+            edges_dst.append(child_id)
+
+        return current_id
+
+    _traverse(root)
+
+    x = torch.tensor(node_types, dtype=torch.long)
+    if edges_src:
+        edge_index = torch.tensor([edges_src, edges_dst], dtype=torch.long)
     else:
-        raise ValueError(f"Unsupported language for AST parsing: {language}")
+        edge_index = torch.empty((2, 0), dtype=torch.long)
+
+    y_tensor = torch.tensor([label], dtype=torch.long) if label is not None else None
+
+    return Data(x=x, edge_index=edge_index, y=y_tensor, num_nodes=len(node_types))
 
 
 if __name__ == "__main__":
-    sample_py = "def add(a, b):\n    return a + b"
-    g = build_ast_graph(sample_py, "python")
-    print("Python AST Nodes:", g.num_nodes, "Edges:", len(g.edges))
-
-    sample_cpp = "int add(int a, int b) { return a + b; }"
-    g_cpp = build_ast_graph(sample_cpp, "cpp")
-    print("C++ AST Nodes:", g_cpp.num_nodes, "Edges:", len(g_cpp.edges))
+    if PYG_AVAILABLE:
+        data = build_pyg_ast_graph("def add(a, b): return a + b", "python", label=0)
+        print("PyG AST Graph Data Object:", data)

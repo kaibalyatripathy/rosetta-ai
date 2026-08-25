@@ -1,45 +1,48 @@
 """
-Unit tests for GNN Graph Builder and Model Architecture.
+Unit tests for PyTorch Geometric GNN AST Model and Similarity Benchmarks.
 """
 
 import pytest
-from src.gnn.graph_builder import build_ast_graph, ASTGraph
-from src.gnn.model import encode_ast_graph, ASTGraphGNN, TORCH_AVAILABLE
+import torch
+from src.gnn.graph_builder import build_pyg_ast_graph
+from src.gnn.model import ASTGNNModel
+from src.gnn.train import train_gnn_ast_model, load_fixture_graphs, evaluate_gnn_similarities
 
 
-def test_python_ast_graph_builder():
+def test_build_pyg_ast_graph():
     code = "def add(a, b):\n    return a + b"
-    graph: ASTGraph = build_ast_graph(code, "python")
-    assert graph.language == "python"
-    assert graph.num_nodes > 0
-    assert len(graph.edges) > 0
-    edge_index = graph.get_edge_index()
-    assert len(edge_index) == 2
-    assert len(edge_index[0]) == len(graph.edges)
+    data = build_pyg_ast_graph(code, "python", label=0)
+    assert data.x is not None
+    assert data.edge_index is not None
+    assert data.num_nodes > 0
 
 
-def test_java_cpp_js_graph_builder():
-    for lang in ["java", "cpp", "javascript"]:
-        code = "int square(int x) { return x * x; }"
-        graph: ASTGraph = build_ast_graph(code, lang)
-        assert graph.language == lang
-        assert graph.num_nodes > 0
-        assert len(graph.edges) > 0
+def test_gnn_model_forward():
+    model = ASTGNNModel(hidden_dim=32, embed_dim=32, num_classes=20)
+    data = build_pyg_ast_graph("int add(int a, int b) { return a + b; }", "cpp", label=1)
+    
+    emb = model.extract_graph_embedding(data.x, data.edge_index)
+    assert emb.shape == (1, 32)
+    
+    logits = model(data.x, data.edge_index)
+    assert logits.shape == (1, 20)
 
 
-def test_encode_ast_graph():
-    code = "def fib(n):\n    return n if n <= 1 else fib(n-1) + fib(n-2)"
-    graph = build_ast_graph(code, "python")
-    emb = encode_ast_graph(graph, hidden_dim=64)
-    assert len(emb) == 64
-    assert any(x != 0.0 for x in emb)
+def test_gnn_similarity_evaluation():
+    graphs, _ = load_fixture_graphs()
+    model = ASTGNNModel(num_classes=20)
+    
+    # Evaluate model
+    metrics = evaluate_gnn_similarities(model, graphs)
+    assert "avg_equivalent_sim" in metrics
+    assert "avg_random_sim" in metrics
+    assert "delta" in metrics
 
 
-@pytest.mark.skipif(not TORCH_AVAILABLE, reason="PyTorch not installed")
-def test_pytorch_gnn_model_forward():
-    import torch
-    model = ASTGraphGNN(hidden_dim=32, output_dim=32)
-    nodes = torch.tensor([1, 2, 3, 4], dtype=torch.long)
-    edges = torch.tensor([[0, 1, 2], [1, 2, 3]], dtype=torch.long)
-    out = model(nodes, edges)
-    assert out.shape == (32,)
+def test_gnn_training_and_clustering():
+    results = train_gnn_ast_model(epochs=15, lr=0.005)
+    assert "loss_history" in results
+    assert len(results["loss_history"]) == 15
+    assert results["after"]["avg_equivalent_sim"] > results["after"]["avg_random_sim"]
+    assert results["after"]["delta"] > 0.50
+
