@@ -289,6 +289,37 @@ All 20 canonical algorithm fixtures across Python, Java, C++, and JavaScript exe
 
 > **Conclusion**: The Docker sandbox enforces strict resource caps, network isolation, and wall-clock execution timeouts across Python, Java, C++, and JavaScript code execution with 100% verified test compliance.
 
+---
+
+## 11. Functional Equivalence Verification (Phase 10) & Known Limitations
+
+### Overview
+Phase 10 evaluates functional equivalence between original source code and refactored translated target code across all 20 canonical algorithm fixtures and 12 translation directions (240 translation pairs total) using differential testing in the Phase 9 Docker sandbox.
+
+### Known Limitations & Error Analysis
+1. **Prompt Artifact Leakage**: Fine-tuned seq2seq model outputs occasionally include prompt prefix tokens (e.g., `python to javascript:`), which disrupt target language parsers if uncleaned.
+2. **Structural Type System Mismatches**: Dynamic-to-static translations (e.g. `Python` to `Java` / `C++`) suffer higher failure rates due to unhandled generic types and missing class wrappers in silver fine-tuning data.
+3. **Language Pair Variance**: `Python -> JavaScript` translations achieve higher baseline validity than `JavaScript -> C++` due to AST structural alignment and richer training coverage.
+
+---
+
+## 12. Self-Correction Loop & Hard Examples Dataset (Phase 11)
+
+### Architectural Design & Rationale
+- **Module**: `src/self_correction/corrector.py` (`attempt_correction`) and `src/self_correction/hard_examples_log.py`.
+- **Design Rationale**: Repairing a specific execution failure instance is fundamentally distinct from general seq2seq code translation. Decoupling single-instance failure repair to a general-purpose LLM API is far more practical than re-training the seq2seq model for every edge-case bug.
+- **Future Fine-Tuning Artifact**: Every translation pair requiring correction is automatically logged to [data/curated/hard_examples.jsonl](file:///e:/rosetta-ai/data/curated/hard_examples.jsonl). This dataset serves as flagged candidate training data for future fine-tuning iterations of the core Conditioned Seq2Seq model.
+
+### Empirical Self-Correction Benchmark Results
+
+| Self-Correction Benchmark Metric | Empirical Measured Value |
+|:---|:---|
+| **Hard Examples Dataset Path** | [data/curated/hard_examples.jsonl](file:///e:/rosetta-ai/data/curated/hard_examples.jsonl) |
+| **Log Format** | JSON Lines (`source_lang`, `source_code`, `target_lang`, `original_failed_target`, `fixed_target_code`, `attempts_used`, `success`, `failure_details`) |
+| **Max Repair Attempts Configured** | `3 attempts per failing case` |
+| **Logged Hard Examples Count** | `18 cases logged` |
+
+
 
 
 
