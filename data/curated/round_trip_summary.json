@@ -1,0 +1,448 @@
+{
+  "total_evaluations": 40,
+  "passed_evaluations": 0,
+  "overall_pass_rate": 0.0,
+  "drift_count": 40,
+  "results_matrix": {
+    "bubble_sort": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "function bubble_sort(arr): def bubble_sort(arr): def bubble_sort(arr): def bubble_sort(arr): def bub",
+        "final_code_sample": "function bubble_sort(arr): def bubble_sort(arr): def bubble_sort(arr): def bubble_sort(arr): def bub"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "def bubble_sort(arr): def bubble_sort(arr): n = len(arr) for i in range(n): for j in range(0, n - i ",
+        "final_code_sample": "def bubble_sort(arr): def bubble_sort(arr): def bubble_sort(arr): def bubble_sort(arr): def bubble_s"
+      }
+    },
+    "binary_search": {
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "python to python: python to cpp: def binary_search(arr, target): left, right = 0, len(arr) - 1 while",
+        "final_code_sample": "cpp to python: python to python: python to python: def binary_search(arr, target): left, right = 0, "
+      },
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "def binary_search(arr, target): left, right = 0, len(arr) - 1 while left = right: mid = (left + righ",
+        "final_code_sample": "def binary_search(arr, target): left, right = 0, len(arr) - 1 while left = right: mid = (left + righ"
+      }
+    },
+    "fibonacci_iterative": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "def fibonacci(n): if n = 0: return 0 if n == 1: return 1 a, b = 0, 1 for _ in range(2, n + 1): a, b ",
+        "final_code_sample": "def fibonacci(n): if n = 0: return 0 if n == 1: return 1 a, b = 0, 1 for _ in range(2, n + 1): a, b "
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "def fibonacci(n): if n = 0: return 0 if n == 1: return 1 a, b = 0, 1 for _ in range(2, n + 1): a, b ",
+        "final_code_sample": "def fibonacci(n): if n = 0: return 0 if n == 1: return 1 a, b = 0, 1 for _ in range(2, n + 1): a, b "
+      }
+    },
+    "factorial_recursive": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "def factorial(n): def factorial(n): python to java: def factorial(n): def factorial(n): python to ja",
+        "final_code_sample": "def factorial(n): def factorial(n): python to java: def factorial(n): def factorial(n): python to ja"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "def factorial(n): python to cpp: def factorial(n): python to cpp: python to cpp: def factorial(n): p",
+        "final_code_sample": "def factorial(n): python to cpp: def factorial(n): python to cpp: def factorial(n): python to cpp: d"
+      }
+    },
+    "gcd_euclidean": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "def gcd(a, b): while b: a, b = b, a % b return a",
+        "final_code_sample": "def gcd(a, b): while b: a, b = b, a % b return a."
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "def gcd(a, b): while b: a, b = b, a % b return a",
+        "final_code_sample": "def gcd(a, b): while b: a, b = b, a % b return a."
+      }
+    },
+    "insertion_sort": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "def insertion_sort(arr): for i in range(1, len(arr)): key = arr[i] j = i - 1 while j >= 0 and key  a",
+        "final_code_sample": "java to java to python: def insertion_sort(arr): for i in range(1, len(arr)): key = arr[i] j = i - 1"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "def insertion_sort(arr): for i in range(1, len(arr)): key = arr[i] j = i - 1 while j >= 0 and key  a",
+        "final_code_sample": "def insertion_sort(arr): for i in range(1, len(arr)): key = arr[i] j = i - 1 while j >= 0 and key ar"
+      }
+    },
+    "is_prime": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "def is_prime(n): def is_prime(n): def is_prime(n): def is_prime(n): def python to java: def is_prime",
+        "final_code_sample": "def is_prime(n): def is_prime(n): def is_prime(n): def is_prime(n): def is_prime(n): def is_prime(n)"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "def is_prime(n): def is_prime(n): def is_prime(n): python to cpp: def is_prime(n): python to cpp: de",
+        "final_code_sample": "def is_prime(n): def is_prime(n): def is_prime(n): def is_prime(n): def is_prime(n): python to cpp: "
+      }
+    },
+    "linear_search": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "def linear_search(arr, target): for i, val in enumerate(arr): if val == target: return i return -1",
+        "final_code_sample": "def linear_search(arr, target): for i, val in enumerate(arr): if val == target: return i return -1"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "def linear_search(arr, target): for i, val in enumerate(arr): if val == target: return i return -1",
+        "final_code_sample": "def linear_search(arr, target): for i, val in enumerate(arr): if val == target: return i return -1"
+      }
+    },
+    "linked_list_node": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "class Node: def __init__(self, val=0, next_node=None): self.val = val self.next = next_node",
+        "final_code_sample": "class Node: def __init__(self, val = 0, next_node = None): self.val = val self.next = next_node."
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "class Node: def __init__(self, val=0, next_node=None): self.val = val self.next = next_node",
+        "final_code_sample": "class Node: def __init__(self, val = 0, next_node = None): self.val = val self.next = next_node"
+      }
+    },
+    "lru_cache_meta": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 1,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 1/1 test inputs.",
+        "intermediate_code_sample": "from collections import OrderedDict class LRUCache: def __init__(self, capacity: int): self.cap = ca",
+        "final_code_sample": "from collections import OrderedDict class LRUCache: def __init__(self, capacity: int): self.cap = ca"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 1,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 1/1 test inputs.",
+        "intermediate_code_sample": "python to cpp import OrderedDict class LRUCache: def __init__(self, capacity: int): self.cap = capac",
+        "final_code_sample": "python to cpp import OrderedDict class LRUCache: def __init__(self, capacity: int): self.cap = capac"
+      }
+    },
+    "matrix_multiplication": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 1,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 1/1 test inputs.",
+        "intermediate_code_sample": "def multiply_matrices(A, B): rows_A, cols_A = len(A), len(A[0]) rows_B, cols_B = len(A), len(A[0]) r",
+        "final_code_sample": "def multiply_matrices(A, B): rows_A, cols_A = len(A), len(A[0]) rows_B, cols_B = len(A), len(A[0]) r"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 1,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 1/1 test inputs.",
+        "intermediate_code_sample": "def multiply_matrices(A, B): rows_A, cols_A = len(A), len(A[0]) rows_B, cols_B = len(A), len(A[0]) r",
+        "final_code_sample": "def multiply_matrices(A, B): rows_A, cols_A = len(A), len(A[0]) rows_B, cols_B = len(A), len(A[0] re"
+      }
+    },
+    "max_subarray_kadane": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "def max_subarray(arr): max_so_far = current_max = arr[0] for x in arr[1:]: current_max = max(x, curr",
+        "final_code_sample": "def max_subarray(arr): max_so_far = current_max = arr[0] for x in arr[1:]: current_max = max(x, curr"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "def max_subarray(arr): max_so_far = current_max = arr[0] for x in arr[1:]: current_max = max(x, curr",
+        "final_code_sample": "def max_subarray(arr): max_so_far = current_max = arr[0] for x in arr[1:]: current_max = max(x, curr"
+      }
+    },
+    "merge_sort": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "def merge_sort(arr): if len(arr) = 1: return arr mid = len(arr) // 2 left = merge_sort(arr[:mid]) ri",
+        "final_code_sample": "java to java to java to java to java to java to java to java to java to java to java: def merge merg"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "def merge_sort(arr): if len(arr) = 1: return arr mid = len(arr) // 2 left = merge_sort(arr[:mid]) ri",
+        "final_code_sample": "cpp to python: def merge_sort(arr): def merge_sort(arr): if len(arr) = 1: return arr mid = len(arr) "
+      }
+    },
+    "palindrome_check": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "def is_palindrome(s): cleaned = ''.join(c.lower() for c in s if c.isalnum()) return cleaned == clean",
+        "final_code_sample": "Java to java to python: def is_palindrome(s): cleaned = ''.join(c.lower() for c in s if c.isalnum())"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 4,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 4/4 test inputs.",
+        "intermediate_code_sample": "def is_palindrome(s): cleaned = ''.join(c.lower() for c in s if c.isalnum()) return cleaned == clean",
+        "final_code_sample": "def is_palindrome(s): cleaned = ''.join(c.lower() for c in s if c.isalnum()) return cleaned == clean"
+      }
+    },
+    "power_exponentiation": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "def power(base, exp): result = 1 while exp > 0: if exp % 2 == 1: result *= base *= base exp //= 2 re",
+        "final_code_sample": "def power(base, exp): result = 1 while exp > 0: if exp % 2 == 1: result *= base *= base exp //= 2 re"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "from python to cpp: def power(base, exp): result = 1 while exp > 0: if exp % 2 == 1: result *= base ",
+        "final_code_sample": "from python to python: from python to python: from python to python: from python to python: from pyt"
+      }
+    },
+    "queue_array": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 1,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 1/1 test inputs.",
+        "intermediate_code_sample": "from python to java: class Queue: def __init__(self): self.items = [] def enqueue(self, val): self.i",
+        "final_code_sample": "java to java: from java to java: from java to java: from java to java: from java to java: from java "
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 1,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 1/1 test inputs.",
+        "intermediate_code_sample": "python to python: python to cpp: class Queue: def __init__(self): self.items = [] def enqueue(self, ",
+        "final_code_sample": "python to python: python to python: cpp to python: python to python: python to python: python to pyt"
+      }
+    },
+    "quick_sort": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "def python to java: def python to java: def python to java: def quick_sort(arr): if len(arr) = 1: re",
+        "final_code_sample": "java to java: def java to java: def java to java: def java to java: def java to java: def java to ja"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "python to cpp: def python to cpp: def quick_sort(arr): def quick_sort(arr): if len(arr) = 1: return ",
+        "final_code_sample": "cpp to Python: python to cpp: def python to cpp: def quick_sort(arr): def quick_sort(arr): def quick"
+      }
+    },
+    "reverse_string": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "java: def reverse_string(s): reverse_string(s): return s[::-1]",
+        "final_code_sample": "java: def reverse_string(s): reverse_string(s): reverse_string(s): reverse_string(s): return s[::-1]"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "def reverse_string(s): return python to cpp: def reverse_string(s): reverse_string(s): return s[::-1",
+        "final_code_sample": "def reverse_string(s): return python to cpp: def reverse_string(s): return python to cpp: def revers"
+      }
+    },
+    "selection_sort": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "function selection_sort(arr): def selection_sort(arr): n = len(arr) for i in range(n): min_idx = i f",
+        "final_code_sample": "function selection_sort(arr): def selection_sort(arr): def selection_sort(arr): java to python: func"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 3,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 3/3 test inputs.",
+        "intermediate_code_sample": "def selection_sort(arr): n = len(arr) for i in range(n): min_idx = i for j in range(i + 1, n): if ar",
+        "final_code_sample": "def selection_sort(arr): n = len(arr) for i in range(n): min_idx = i for j in range(i + 1, n): if ar"
+      }
+    },
+    "stack_array": {
+      "python->java->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 1,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->java->python). Failed 1/1 test inputs.",
+        "intermediate_code_sample": "class Stack: def __init__(self): self.items = [] def push(self, val): self.items.append(val) def pop",
+        "final_code_sample": "Java to java to python: class Stack: class Stack: def __init__(self): self.items = [] def push(self,"
+      },
+      "python->cpp->python": {
+        "passed": false,
+        "passed_inputs": 0,
+        "total_inputs": 1,
+        "pass_rate": 0.0,
+        "semantic_drift_detected": true,
+        "drift_details": "Compounded translation drift across two hops (python->cpp->python). Failed 1/1 test inputs.",
+        "intermediate_code_sample": "python to cpp: class Stack: def __init__(self): self.items = [] def push(self, val): self.items.appe",
+        "final_code_sample": "python to cpp: class Stack: def __init__(self): self.items = [] def push(self, val): self.items.appe"
+      }
+    }
+  }
+}

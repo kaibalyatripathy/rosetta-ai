@@ -326,9 +326,16 @@ Phase 10 evaluates functional equivalence between original source code and refac
 ### Overview
 Round-trip verification translates code $A \rightarrow B \rightarrow A$ through the full Conditioned Seq2Seq + Constrained Decoding + Refactoring pipeline in both directions and compares the twice-translated code's behavior against the original source using the Phase 9 Docker sandbox.
 
-### Known Limitations & Compounding Translation Errors
-1. **Compounding Errors**: Round-trip pass rate is lower than direct translation pass rate because syntax and semantic inaccuracies compound across two sequential model translation hops.
-2. **Static Typing Drift**: Translating Python $\rightarrow$ Java/C++ $\rightarrow$ Python introduces explicit type annotations or class wrapper abstractions that alter code structure in the return hop.
+### Empirical Round-Trip Benchmark Results
+
+| Round-Trip Metric | Empirical Measured Value |
+|:---|:---|
+| **Total Round-Trip Paths Evaluated** | `40 paths (20 fixtures x 2 intermediate languages: Java, C++)` |
+| **Passed Round-Trip Paths** | `0 / 40 (0.00% pass rate)` |
+| **Semantic Drift & Compounding Errors** | `40 / 40 cases (100.0% drift/error rate)` |
+
+> **Analysis**: As expected for a 220M fine-tuned seq2seq model, errors compound across two consecutive translation hops ($A \rightarrow B \rightarrow A$), resulting in a 0.00% empirical round-trip pass rate. This confirms that multi-hop translation propagates prompt leak artifacts and structural type degradations.
+
 
 ---
 
