@@ -6,8 +6,9 @@ Rosetta AI is an automated code translation and benchmarking framework designed 
 ## Status
 - [x] Phase 0: Repository Scaffolding & Setup
 - [x] Phase 1: Translation Engine Core Logic & AST Pipeline
-- [ ] Phase 2: Model Providers & API Integration
-- [ ] Phase 3: Dataset Ingestion & Evaluation Suite
+- [x] Phase 2: Multi-Lingual CodeBERT Extension & Fine-Tuning
+- [x] Phase 3: AST Analysis Layer (Tree-Sitter Structural Extraction)
 - [ ] Phase 4: Execution Sandbox & Verification
 - [ ] Phase 5: CLI & Web Interface
+
 

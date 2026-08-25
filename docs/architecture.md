@@ -84,3 +84,31 @@ Rosetta AI is a multi-language code translation and semantic verification system
 
 > **Conclusion**: Fine-tuning `microsoft/graphcodebert-base` on Rosetta AI's gold parallel dataset significantly improves cross-language semantic representation alignment while suppressing random non-equivalent pair similarity.
 
+---
+
+## 4. AST Analysis Layer (Tree-Sitter Integration)
+
+### Installed Grammars & Dependency Pinning
+- **Tree-Sitter Core**: `tree-sitter==0.21.3`
+- **Pre-built Language Bindings**: `tree-sitter-languages==1.10.2`
+- **Supported Languages**: Python, Java, C++, JavaScript
+
+> [!NOTE]
+> **Dependency Pinning Requirement**: `tree-sitter` 0.22+ introduced breaking C-API changes to language constructor bindings. Pinning `tree-sitter==0.21.3` alongside `tree-sitter-languages==1.10.2` ensures precompiled binary compatibility across Windows, Linux, and macOS environments.
+
+### Extracted Structural Facts Schema
+The `extract_structure(code: str, lang: str) -> dict` pipeline extracts six deterministic structural facts:
+1. `function_names`: `List[str]` — All declared function and method identifiers.
+2. `parameter_count`: `int` — Total number of input parameters.
+3. `parameter_names`: `List[str]` — Exact list of parameter names.
+4. `loops`: `List[str]` — Identified loop constructs (`for`, `while`, `do-while`).
+5. `conditionals`: `List[str]` — Identified control constructs (`if`, `else`, `switch`, `ternary`).
+6. `has_recursion`: `bool` — True if a function contains self-referential call expressions inside its body.
+
+### Language-Specific AST Node Quirks
+- **Python**: Function nodes are `function_definition` with parameter container `parameters`.
+- **Java**: Function nodes are `method_declaration` with parameter container `formal_parameters`.
+- **C++**: Function nodes are `function_definition` where the function name resides inside a nested `function_declarator` node.
+- **JavaScript**: Functions span `function_declaration`, `method_definition`, and `arrow_function` nodes.
+
+
