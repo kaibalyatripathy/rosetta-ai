@@ -31,6 +31,7 @@ ENV/
 
 # Data
 data/raw/
+data/curated/
 data/benchmarks/
 !.gitkeep
 

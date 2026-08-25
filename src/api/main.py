@@ -49,7 +49,7 @@ def get_decoder() -> ConstrainedGrammarDecoder:
     global _decoder_instance
     if _decoder_instance is None:
         logger.info("Initializing ConstrainedGrammarDecoder for API service...")
-        _decoder_instance = ConstrainedGrammarDecoder()
+        _decoder_instance = ConstrainedGrammarDecoder(model_name="t5-small")
     return _decoder_instance
 
 

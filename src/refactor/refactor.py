@@ -1,8 +1,9 @@
 """
 Post-Generation LLM Refactoring Pass for Rosetta AI.
 
-Uses Google Gemini API (gemini-2.5-flash) to transform Phase 7 syntactically valid code
-into idiomatic target-language code following modern best practices.
+Uses a Local Coding LLM (Qwen2.5-Coder-1.5B) to transform Phase 7 syntactically valid code
+into idiomatic target-language code following modern best practices. 
+Falls back to Google Gemini API if the local model is unavailable or fails.
 """
 
 import os
@@ -24,10 +25,61 @@ if env_file.exists():
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
+# Global variables for local LLM
+_local_llm_pipeline = None
+
+def get_local_llm_pipeline():
+    global _local_llm_pipeline
+    if _local_llm_pipeline is None:
+        try:
+            import torch
+            from transformers import pipeline
+            logger.info("Loading Local Refactoring LLM (Qwen2.5-Coder-1.5B)...")
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            _local_llm_pipeline = pipeline(
+                "text-generation",
+                model="Qwen/Qwen2.5-Coder-1.5B-Instruct",
+                torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+                device_map="auto" if device == "cuda" else None,
+                device=-1 if device == "cpu" else None
+            )
+        except Exception as e:
+            logger.error(f"Failed to load local LLM: {e}")
+            _local_llm_pipeline = False # Mark as failed to prevent retries
+    return _local_llm_pipeline
+
+def call_local_llm(prompt: str) -> Optional[str]:
+    pipe = get_local_llm_pipeline()
+    if not pipe:
+        return None
+        
+    try:
+        messages = [
+            {"role": "system", "content": "You are a helpful expert software engineer."},
+            {"role": "user", "content": prompt}
+        ]
+        
+        if hasattr(pipe.tokenizer, "apply_chat_template"):
+            prompt_input = pipe.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        else:
+            prompt_input = f"<|im_start|>system\nYou are a helpful expert software engineer.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
+            
+        outputs = pipe(
+            prompt_input,
+            max_new_tokens=512,
+            temperature=0.1,
+            do_sample=False,
+            return_full_text=False
+        )
+        return outputs[0]["generated_text"].strip()
+    except Exception as e:
+        logger.error(f"Local LLM generation failed: {e}")
+        return None
+
 
 def call_gemini_llm(prompt: str) -> Optional[str]:
     """
-    Calls Google Gemini API (gemini-2.5-flash or gemini-1.5-flash) with fallback.
+    Calls Google Gemini API (gemini-3.6-flash) with fallback.
     """
     if not GEMINI_API_KEY:
         logger.warning("GEMINI_API_KEY not configured in .env; applying AST rule-based refactoring fallback.")
@@ -38,7 +90,7 @@ def call_gemini_llm(prompt: str) -> Optional[str]:
         from google import genai
         client = genai.Client(api_key=GEMINI_API_KEY)
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.6-flash",
             contents=prompt
         )
         return response.text
@@ -46,7 +98,7 @@ def call_gemini_llm(prompt: str) -> Optional[str]:
         try:
             import google.generativeai as genai_legacy
             genai_legacy.configure(api_key=GEMINI_API_KEY)
-            model = genai_legacy.GenerativeModel("gemini-1.5-flash")
+            model = genai_legacy.GenerativeModel("gemini-3.6-flash")
             response = model.generate_content(prompt)
             return response.text
         except Exception as e2:
@@ -56,7 +108,7 @@ def call_gemini_llm(prompt: str) -> Optional[str]:
 
 def refactor(target_code: str, target_lang: str) -> Dict[str, Any]:
     """
-    Refactors target code into target-language idiomatic best practices using Gemini LLM.
+    Refactors target code into target-language idiomatic best practices using local LLM or Gemini LLM.
     Returns: Dict containing original code, refactored code, before/after style scores.
     """
     before_metrics = compute_style_score(target_code, target_lang)
@@ -73,7 +125,11 @@ Input Code ({target_lang}):
 {target_code}
 """
 
-    llm_output = call_gemini_llm(prompt)
+    llm_output = call_local_llm(prompt)
+    if not llm_output:
+        logger.info("Local LLM failed or unavailable. Falling back to Gemini API...")
+        llm_output = call_gemini_llm(prompt)
+        
     refactored_code = target_code
 
     if llm_output:
@@ -102,7 +158,7 @@ Input Code ({target_lang}):
 
 
 def _rule_based_refactor(code: str, lang: str) -> str:
-    """Fallback rule-based stylistic refactoring when LLM API is unavailable."""
+    """Fallback rule-based stylistic refactoring when LLM APIs are unavailable."""
     norm_lang = lang.lower().strip()
     lines = code.splitlines()
     cleaned_lines = []

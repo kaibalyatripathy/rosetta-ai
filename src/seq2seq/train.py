@@ -25,7 +25,7 @@ from src.seq2seq.model import ConditionedSeq2SeqModel, DEFAULT_MODEL_NAME
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("RosettaAI.Seq2Seq.Train")
 
-PARALLEL_CORPUS_PATH = Path("data/curated/parallel_corpus.jsonl")
+PARALLEL_CORPUS_PATH = Path("data/curated/parallel_corpus_large.jsonl")
 SPLITS_PATH = Path("data/curated/dataset_splits.json")
 CHECKPOINT_PATH = Path("checkpoints/seq2seq_codet5_finetuned.pt")
 GNN_CHECKPOINT_PATH = Path("checkpoints/gnn_ast_model.pt")
@@ -149,8 +149,8 @@ def prepare_dataset_splits(seed: int = 42) -> Tuple[List[Dict[str, Any]], List[D
 
 def train_seq2seq_model(
     model_name: str = "t5-small",
-    epochs: int = 5,
-    batch_size: int = 8,
+    epochs: int = 10,
+    batch_size: int = 16,
     lr: float = 5e-4,
     sanity_check: bool = False
 ) -> Dict[str, Any]:
@@ -234,4 +234,4 @@ def train_seq2seq_model(
 
 
 if __name__ == "__main__":
-    train_seq2seq_model(sanity_check=True)
+    train_seq2seq_model(sanity_check=False)

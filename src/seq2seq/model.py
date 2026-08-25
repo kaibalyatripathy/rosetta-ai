@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-DEFAULT_MODEL_NAME = "t5-base"
+DEFAULT_MODEL_NAME = "t5-small"
 
 
 
