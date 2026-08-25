@@ -394,6 +394,35 @@ Phase 14 estimates and compares Big-O computational time and space complexity be
 
 > **Conclusion**: Rosetta AI preserves Big-O computational complexity across 98.75% of valid translation pairs. Complexities for standard sorting, search, and numeric algorithms remain structurally preserved across Python, Java, C++, and JavaScript.
 
+---
+
+## 16. Composite Semantic Preservation Score Formula & Weighting (Phase 15)
+
+### Explainable Scoring Formula (0 to 100)
+The Semantic Preservation Score $S$ combines multi-dimensional evaluation signals from Phases 10, 12, 13, and 14 into an explainable, non-black-box 0-100 metric:
+
+$$S = \text{Score}_{\text{Equivalence}} + \text{Score}_{\text{Risk}} + \text{Score}_{\text{Complexity}} + \text{Score}_{\text{RoundTrip}}$$
+
+| Evaluation Component | Source Phase | Weight / Max Points | Scoring Mechanics & Weighting Rationale |
+|:---|:---|:---|:---|
+| **Functional Equivalence** | Phase 10 | **45.0 pts (45%)** | $\text{Pass Rate (0.0 - 1.0)} \times 45.0$. Directly measures input-output runtime behavioral parity in Docker sandbox. |
+| **Semantic Risk Detection** | Phase 13 | **25.0 pts (25%)** | Starts at 25.0 pts. $-15.0$ pts per `HIGH` risk flag (`INTEGER_OVERFLOW`, `FLOAT_PRECISION`, `INDEX_BOUNDARY`), $-7.0$ pts per `MEDIUM` risk flag (`TYPE_COERCION`). Minimum 0.0 pts. |
+| **Complexity Preservation** | Phase 14 | **15.0 pts (15%)** | $15.0$ pts if target Big-O time complexity matches source complexity; $0.0$ pts if complexity degraded. |
+| **Round-Trip Stability** | Phase 12 | **15.0 pts (15%)** | $15.0$ pts if $A \rightarrow B \rightarrow A$ round-trip execution succeeds; $0.0$ pts if round-trip fails. |
+
+### Quality Grade Categories
+- **`EXCELLENT` ($90.0 - 100.0$ pts)**: Clean functional equivalence, 0 risk flags, preserved complexity, round-trip stable.
+- **`GOOD` ($70.0 - 89.9$ pts)**: Functionally sound translation with minor risk or round-trip warnings.
+- **`MODERATE / MARGINAL` ($45.0 - 69.9$ pts)**: Partial test input pass rate or multiple risk flags.
+- **`POOR / FAILING` ($0.0 - 44.9$ pts)**: Fails functional sandbox verification or contains severe syntax errors.
+
+### Human-Readable Report Artifacts
+Generated reports are stored in [docs/example_reports/](file:///e:/rosetta-ai/docs/example_reports/):
+- **[High-Scoring Report](file:///e:/rosetta-ai/docs/example_reports/high_scoring_report.md)** (`100.0 / 100 - EXCELLENT`)
+- **[Middling-Scoring Report](file:///e:/rosetta-ai/docs/example_reports/middling_scoring_report.md)** (`40.5 / 100 - MARGINAL/FAILING`)
+- **[Low-Scoring Report](file:///e:/rosetta-ai/docs/example_reports/low_scoring_report.md)** (`25.0 / 100 - FAILING`)
+
+
 
 
 
