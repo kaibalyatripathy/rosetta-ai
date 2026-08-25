@@ -228,6 +228,68 @@ Epoch 15/15 | Training Loss: 2.2591
 
 > **Conclusion**: The post-generation refactoring pass successfully eliminates remaining lint style warnings across Python, Java, C++, and JavaScript, improving average style compliance from **82.5/100** to **100.0/100**.
 
+---
+
+## 10. Sandboxed Compilation & Execution (Docker Isolation)
+
+### Container Base Image & Pinned Runtime Versions
+The sandbox utilizes a single Docker container (`docker/sandbox.Dockerfile`) based on `ubuntu:22.04` with non-root security context (`sandboxuser`, UID 1000). The exact toolchain versions pinned and recorded from container inspection are:
+
+| Language | Runtime / Compiler | Pinned Version | Execution Engine |
+|:---|:---|:---|:---|
+| **Python** | `python3` | `Python 3.10.12` | Python CPython 3.10 Interpreter |
+| **Java** | `openjdk-17-jdk-headless` | `OpenJDK 17.0.19` | OpenJDK 64-Bit Server VM (build 17.0.19+10) |
+| **C++** | `g++` | `g++ 11.4.0` | GNU C++ Compiler (Ubuntu 11.4.0-1ubuntu1~22.04.3) |
+| **JavaScript** | `nodejs` | `Node.js v12.22.9` | V8 JavaScript Engine |
+
+### Security Isolation & Resource Limits
+The sandbox runner (`src/sandbox/runner.py`) enforces strict multi-layered isolation flags on every container invocation:
+
+1. **Network Disabling**: `--network none` (completely blocks socket creation and outbound connections).
+2. **Memory Limit**: `--memory 256m` (strict 256MB RAM cap per execution).
+3. **CPU Allocation**: `--cpus=1.0` (prevents CPU resource exhaustion).
+4. **Hard Wall-Clock Timeout**: Enforced via `subprocess.Popen` with immediate process/container kill (`docker kill <container_id>`) if wall-clock time exceeds `timeout_sec` (default 5.0s).
+5. **Separated Compilation Stage**: Compiled languages (`Java`, `C++`) undergo distinct compilation (`javac` / `g++`) prior to binary execution, capturing compile errors (`compile_error=True`, `compile_stderr`) distinctly from runtime errors.
+
+### Empirical Sandbox Verification Results
+
+#### 1. Canonical Fixtures Benchmark (20/20 Passed)
+All 20 canonical algorithm fixtures across Python, Java, C++, and JavaScript executed cleanly within the isolated container:
+
+| Fixture Name | Language | Status | Exit Code | Verified Stdout Output |
+|:---|:---|:---|:---|:---|
+| `factorial_recursive` | Python | `PASSED` | `0` | `120` |
+| `binary_search` | Java | `PASSED` | `0` | `3` |
+| `fibonacci_iterative` | C++ | `PASSED` | `0` | `55` |
+| `bubble_sort` | JavaScript | `PASSED` | `0` | `1 2 5 8 9` |
+| `gcd_euclidean` | Python | `PASSED` | `0` | `6` |
+| `insertion_sort` | C++ | `PASSED` | `0` | `1 2 3 4` |
+| `is_prime` | Java | `PASSED` | `0` | `true` |
+| `linear_search` | JavaScript | `PASSED` | `0` | `2` |
+| `linked_list_node` | Python | `PASSED` | `0` | `1 -> 2 -> 3` |
+| `lru_cache_meta` | Python | `PASSED` | `0` | `10` |
+| `matrix_multiplication` | C++ | `PASSED` | `0` | `4 4 10 8` |
+| `max_subarray_kadane` | Java | `PASSED` | `0` | `6` |
+| `merge_sort` | JavaScript | `PASSED` | `0` | `3 9 10 27 38 43 82` |
+| `palindrome_check` | Python | `PASSED` | `0` | `True` |
+| `power_exponentiation` | C++ | `PASSED` | `0` | `1024` |
+| `queue_array` | Java | `PASSED` | `0` | `10` |
+| `quick_sort` | Python | `PASSED` | `0` | `1 5 7 8 9 10` |
+| `reverse_string` | JavaScript | `PASSED` | `0` | `olleh` |
+| `selection_sort` | C++ | `PASSED` | `0` | `11 12 22 25 64` |
+| `stack_array` | Java | `PASSED` | `0` | `20` |
+
+#### 2. Security Bounds Safety Benchmark (3/3 Passed)
+
+| Safety Test Scenario | Enforced Boundary | Result | Empirical Output / Log Evidence |
+|:---|:---|:---|:---|
+| **Infinite Loop** | Hard Wall-Clock Timeout (`timeout_sec=2.0`) | `CONTAINED` | `timed_out=True`, `exit_code=-1`, Stderr: `Execution timed out` |
+| **Network Call Attempt** | Socket Blocking (`--network none`) | `BLOCKED` | `exit_code=1`, `OSError: [Errno 101] Network is unreachable` |
+| **Filesystem Write** | Write Outside `/sandbox` (`/etc/hack.txt`) | `BLOCKED` | `exit_code=1`, `PermissionError: [Errno 13] Permission denied: '/etc/hack.txt'` |
+
+> **Conclusion**: The Docker sandbox enforces strict resource caps, network isolation, and wall-clock execution timeouts across Python, Java, C++, and JavaScript code execution with 100% verified test compliance.
+
+
 
 
 
