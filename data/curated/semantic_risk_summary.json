@@ -1,0 +1,139 @@
+{
+  "total_gold_pairs_scanned": 240,
+  "total_risk_flagged_pairs": 9,
+  "category_counts": {
+    "INTEGER_OVERFLOW": 6,
+    "INDEX_BOUNDARY": 0,
+    "TYPE_COERCION": 3,
+    "FLOAT_PRECISION": 0,
+    "MEMORY_MANAGEMENT": 0
+  },
+  "flagged_pairs": [
+    {
+      "algorithm": "gcd_euclidean",
+      "pair": "python->javascript",
+      "risk_score": 1.5,
+      "has_high_risk": false,
+      "risks": [
+        {
+          "category": "TYPE_COERCION",
+          "severity": "MEDIUM",
+          "description": "JavaScript translation uses loose equality '==' instead of strict equality '===', risking unexpected type coercion.",
+          "matched_pattern": "=="
+        }
+      ]
+    },
+    {
+      "algorithm": "gcd_euclidean",
+      "pair": "java->javascript",
+      "risk_score": 1.5,
+      "has_high_risk": false,
+      "risks": [
+        {
+          "category": "TYPE_COERCION",
+          "severity": "MEDIUM",
+          "description": "JavaScript translation uses loose equality '==' instead of strict equality '===', risking unexpected type coercion.",
+          "matched_pattern": "=="
+        }
+      ]
+    },
+    {
+      "algorithm": "gcd_euclidean",
+      "pair": "cpp->javascript",
+      "risk_score": 1.5,
+      "has_high_risk": false,
+      "risks": [
+        {
+          "category": "TYPE_COERCION",
+          "severity": "MEDIUM",
+          "description": "JavaScript translation uses loose equality '==' instead of strict equality '===', risking unexpected type coercion.",
+          "matched_pattern": "=="
+        }
+      ]
+    },
+    {
+      "algorithm": "is_prime",
+      "pair": "python->java",
+      "risk_score": 3.0,
+      "has_high_risk": true,
+      "risks": [
+        {
+          "category": "INTEGER_OVERFLOW",
+          "severity": "HIGH",
+          "description": "Arbitrary precision Python integer arithmetic translated to fixed-width java without BigInteger or int64 protection.",
+          "matched_pattern": "python arithmetic -> fixed width int"
+        }
+      ]
+    },
+    {
+      "algorithm": "is_prime",
+      "pair": "python->cpp",
+      "risk_score": 3.0,
+      "has_high_risk": true,
+      "risks": [
+        {
+          "category": "INTEGER_OVERFLOW",
+          "severity": "HIGH",
+          "description": "Arbitrary precision Python integer arithmetic translated to fixed-width cpp without BigInteger or int64 protection.",
+          "matched_pattern": "python arithmetic -> fixed width int"
+        }
+      ]
+    },
+    {
+      "algorithm": "factorial_recursive",
+      "pair": "python->java",
+      "risk_score": 3.0,
+      "has_high_risk": true,
+      "risks": [
+        {
+          "category": "INTEGER_OVERFLOW",
+          "severity": "HIGH",
+          "description": "Arbitrary precision Python integer arithmetic translated to fixed-width java without BigInteger or int64 protection.",
+          "matched_pattern": "python arithmetic -> fixed width int"
+        }
+      ]
+    },
+    {
+      "algorithm": "matrix_multiplication",
+      "pair": "python->java",
+      "risk_score": 3.0,
+      "has_high_risk": true,
+      "risks": [
+        {
+          "category": "INTEGER_OVERFLOW",
+          "severity": "HIGH",
+          "description": "Arbitrary precision Python integer arithmetic translated to fixed-width java without BigInteger or int64 protection.",
+          "matched_pattern": "python arithmetic -> fixed width int"
+        }
+      ]
+    },
+    {
+      "algorithm": "matrix_multiplication",
+      "pair": "python->cpp",
+      "risk_score": 3.0,
+      "has_high_risk": true,
+      "risks": [
+        {
+          "category": "INTEGER_OVERFLOW",
+          "severity": "HIGH",
+          "description": "Arbitrary precision Python integer arithmetic translated to fixed-width cpp without BigInteger or int64 protection.",
+          "matched_pattern": "python arithmetic -> fixed width int"
+        }
+      ]
+    },
+    {
+      "algorithm": "power_exponentiation",
+      "pair": "python->java",
+      "risk_score": 3.0,
+      "has_high_risk": true,
+      "risks": [
+        {
+          "category": "INTEGER_OVERFLOW",
+          "severity": "HIGH",
+          "description": "Arbitrary precision Python integer arithmetic translated to fixed-width java without BigInteger or int64 protection.",
+          "matched_pattern": "python arithmetic -> fixed width int"
+        }
+      ]
+    }
+  ]
+}
