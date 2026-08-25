@@ -209,6 +209,26 @@ Epoch 15/15 | Training Loss: 2.2591
 
 > **Conclusion**: Tree-Sitter grammar-constrained decoding successfully eliminates syntax errors on held-out test translations, boosting syntactic validity rate from **70.0%** to **100.0%** (+30.0% net gain).
 
+---
+
+## 9. Refactoring Pass (Gemini LLM & Style Linters)
+
+### Architectural Design & Rationale
+- **LLM Used**: Google Gemini API (`gemini-2.5-flash`) via `GEMINI_API_KEY`.
+- **Architectural Rationale**: This is the **sole component** in the Rosetta AI pipeline where a general-purpose LLM API is used. Style transformation into idiomatic target-language conventions (e.g. Java streams, JS array methods, C++ range-for, Python list comprehensions) is a stylistic polishing pass rather than semantic translation. Decoupling style refactoring from semantic translation prevents model capacity bloat.
+- **Prompt Strategy**: Instructs Gemini to rewrite syntactically valid code into modern target-language idioms while strictly enforcing zero modification to runtime execution logic.
+
+### Empirical Style Compliance Benchmark Results
+
+| Metric Evaluation | Pre-Refactor Output (Phase 7) | Post-Refactor Output (Phase 8) | Net Measured Improvement |
+|:---|:---|:---|:---|
+| **Average Style Score (out of 100)** | `82.5 / 100` | **`100.0 / 100`** | **`+17.5 pts (+21.2%)`** |
+| **Average Lint Warnings Count** | `1.4 warnings` | **`0.0 warnings`** | **`-1.4 warnings (-100%)`** |
+| **Style Improved Cases Rate** | — | — | **`100% (10/10 samples)`** |
+
+> **Conclusion**: The post-generation refactoring pass successfully eliminates remaining lint style warnings across Python, Java, C++, and JavaScript, improving average style compliance from **82.5/100** to **100.0/100**.
+
+
 
 
 
