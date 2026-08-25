@@ -1,0 +1,19 @@
+{
+  "total_pairs": 840,
+  "gold_pairs": 240,
+  "silver_pairs": 600,
+  "direction_matrix": {
+    "python -> java": 70,
+    "python -> cpp": 70,
+    "python -> javascript": 70,
+    "java -> python": 70,
+    "java -> cpp": 70,
+    "java -> javascript": 70,
+    "cpp -> python": 70,
+    "cpp -> java": 70,
+    "cpp -> javascript": 70,
+    "javascript -> python": 70,
+    "javascript -> java": 70,
+    "javascript -> cpp": 70
+  }
+}

@@ -1,0 +1,1 @@
+"""GNN model training script."""

@@ -37,3 +37,10 @@ data/benchmarks/
 # Pytest
 .pytest_cache/
 
+# Model Checkpoints & Training Logs
+checkpoints/*
+!checkpoints/.gitkeep
+training_logs/*
+!training_logs/.gitkeep
+
+
