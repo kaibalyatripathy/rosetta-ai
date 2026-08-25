@@ -142,5 +142,29 @@ Epoch 15/15 | Training Loss: 2.2591
 
 > **Conclusion**: Training the AST GNN from scratch successfully forces structurally-similar code (e.g., Python `bubble_sort` vs Java `bubbleSort`) to cluster tightly at **0.9517** cosine similarity, while drastically suppressing random/unrelated code similarity down to **0.2388** (a net separation gain of **+0.7159**).
 
+---
+
+## 6. Fused Semantic Representation & 3-Way Benchmark Comparison
+
+### Architecture & Fusion MLP Layer
+- **Input Modalities**:
+  1. CodeBERT Token Sequence Embedding ($z_{\text{seq}} \in \mathbb{R}^{128}$)
+  2. GNN AST Structural Graph Embedding ($z_{\text{ast}} \in \mathbb{R}^{128}$)
+- **Projection Model**: `RepresentationFusionMLP` (2-Layer MLP with LayerNorm, GELU, and $L_2$ normalization).
+- **Target Fused Dimension**: $128$-dimensional vector $z_{\text{fused}} \in \mathbb{R}^{128}$.
+
+### Real Empirical 3-Way Similarity Comparison
+
+| Representation Modality | Avg Equivalent Pair Cosine Sim ($S_{\text{equiv}}$) | Avg Random Pair Cosine Sim ($S_{\text{random}}$) | Net Alignment Gap ($\Delta = S_{\text{equiv}} - S_{\text{random}}$) |
+|:---|:---|:---|:---|
+| **1. CodeBERT-Only** | `0.2924` | `0.3133` | `-0.0209` |
+| **2. GNN AST-Only** | **`0.9244`** | **`-0.0399`** | **`+0.9642`** |
+| **3. Fused Representation (CodeBERT + GNN)** | `0.9717` | `0.9430` | `+0.0288` |
+
+### Architectural Finding & Analysis
+1. **GNN AST Structural Representation** provides the strongest cross-language alignment separation ($\Delta = +0.9642$), keeping equivalent code representations highly clustered ($0.9244$) while pushing random unrelated code pairs far apart ($-0.0399$).
+2. **Fused Representation** achieves higher raw equivalent-pair similarity ($0.9717$), but compresses random pair representations closer together ($0.9430$), narrowing the net separation gap down to $+0.0288$.
+
+
 
 
