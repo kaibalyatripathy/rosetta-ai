@@ -422,6 +422,31 @@ Generated reports are stored in [docs/example_reports/](file:///e:/rosetta-ai/do
 - **[Middling-Scoring Report](file:///e:/rosetta-ai/docs/example_reports/middling_scoring_report.md)** (`40.5 / 100 - MARGINAL/FAILING`)
 - **[Low-Scoring Report](file:///e:/rosetta-ai/docs/example_reports/low_scoring_report.md)** (`25.0 / 100 - FAILING`)
 
+---
+
+## 17. FastAPI REST API & Interactive Web Interface (Phase 16)
+
+### System Architecture
+Phase 16 exposes the entire Rosetta AI translation, constrained decoding, refactoring, Docker sandbox execution, risk detection, and composite scoring pipeline via a production-grade FastAPI REST server (`src/api/main.py`) paired with a dark glassmorphic single-page web application (`web/index.html`).
+
+### API Endpoints
+- **`GET /health`**: Health status check returning system status, API version, supported languages (`python`, `java`, `cpp`, `javascript`), and Docker sandbox health.
+- **`POST /translate`**: End-to-end code translation pipeline endpoint.
+  - **Request Body**: `{"source_code": "...", "source_lang": "python", "target_lang": "javascript", "algorithm_name": "binary_search"}`
+  - **Response Payload**: `{"target_code": "...", "composite_score": 100.0, "quality_grade": "EXCELLENT", "passed_inputs": 4, "total_inputs": 4, "pass_rate": 100.0, "flagged_risks": [], "source_complexity": "O(log n)", "target_complexity": "O(log n)", "markdown_report": "..."}`
+- **`GET /`**: Serves the interactive dark glassmorphic single-page frontend.
+
+### Integration Test Results (`tests/integration/test_api.py`)
+```bash
+python -m pytest tests/integration/test_api.py -s
+# Result: 4 passed in 48.76s
+```
+- `test_health_endpoint`: Passed
+- `test_translate_python_to_javascript`: Passed
+- `test_translate_python_to_cpp`: Passed
+- `test_translate_java_to_python`: Passed
+
+
 
 
 

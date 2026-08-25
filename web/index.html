@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rosetta AI — Cross-Language Code Translation Engine</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Nav -->
+        <header class="navbar">
+            <div class="brand">
+                <div class="logo-icon">⚡</div>
+                <div class="brand-text">
+                    <h1>Rosetta AI</h1>
+                    <span>Cross-Language Code Translation Engine</span>
+                </div>
+            </div>
+            <div class="status-badge" id="server-status">
+                <span class="status-dot green"></span>
+                <span>FastAPI + Docker Sandbox Online</span>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="workspace">
+            <!-- Preset Quick Loaders -->
+            <div class="preset-bar">
+                <span class="preset-title">Quick Algorithm Presets:</span>
+                <button class="btn-preset" onclick="loadPreset('binary_search')">Binary Search</button>
+                <button class="btn-preset" onclick="loadPreset('bubble_sort')">Bubble Sort</button>
+                <button class="btn-preset" onclick="loadPreset('factorial')">Factorial (Recursive)</button>
+                <button class="btn-preset" onclick="loadPreset('fibonacci')">Fibonacci (Iterative)</button>
+            </div>
+
+            <!-- Dual Editor Container -->
+            <div class="editor-grid">
+                <!-- Left Pane: Source Code Input -->
+                <div class="glass-card editor-card">
+                    <div class="card-header">
+                        <div class="pane-title">
+                            <span class="step-num">01</span> Source Code
+                        </div>
+                        <div class="lang-selector-group">
+                            <label for="src-lang">Language:</label>
+                            <select id="src-lang" class="custom-select">
+                                <option value="python" selected>Python</option>
+                                <option value="java">Java</option>
+                                <option value="cpp">C++</option>
+                                <option value="javascript">JavaScript</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <textarea id="src-code" id="input-source-code" placeholder="Paste source code snippet here..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Center Action Column -->
+                <div class="action-column">
+                    <button id="btn-translate" class="btn-primary" onclick="handleTranslate()">
+                        <span class="btn-text">Translate Code ➔</span>
+                        <span class="spinner hidden" id="loading-spinner"></span>
+                    </button>
+                </div>
+
+                <!-- Right Pane: Translated Target Code Output -->
+                <div class="glass-card editor-card">
+                    <div class="card-header">
+                        <div class="pane-title">
+                            <span class="step-num">02</span> Translated Output
+                        </div>
+                        <div class="header-actions">
+                            <div class="lang-selector-group">
+                                <label for="tgt-lang">Target:</label>
+                                <select id="tgt-lang" class="custom-select">
+                                    <option value="javascript" selected>JavaScript</option>
+                                    <option value="python">Python</option>
+                                    <option value="java">Java</option>
+                                    <option value="cpp">C++</option>
+                                </select>
+                            </div>
+                            <button class="btn-icon" onclick="copyTargetCode()" title="Copy Target Code" id="btn-copy">📋 Copy</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <pre class="code-preview"><code id="tgt-code" class="code-display">// Translated target code will appear here after execution...</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Execution Pipeline Progress Bar -->
+            <div id="pipeline-progress" class="glass-card progress-card hidden">
+                <div class="progress-steps">
+                    <div class="step-item active" id="step-1">1. Seq2Seq Generation</div>
+                    <div class="step-arrow">➔</div>
+                    <div class="step-item" id="step-2">2. Constrained Decoding</div>
+                    <div class="step-arrow">➔</div>
+                    <div class="step-item" id="step-3">3. LLM Refactoring</div>
+                    <div class="step-arrow">➔</div>
+                    <div class="step-item" id="step-4">4. Docker Sandbox</div>
+                    <div class="step-arrow">➔</div>
+                    <div class="step-item" id="step-5">5. Preservation Scoring</div>
+                </div>
+            </div>
+
+            <!-- Results & Dashboard Panel -->
+            <section id="results-panel" class="results-grid hidden">
+                <!-- Score Card -->
+                <div class="glass-card metric-card">
+                    <div class="metric-header">Semantic Preservation Score</div>
+                    <div class="score-display">
+                        <div class="score-number" id="res-score">0.0</div>
+                        <div class="score-max">/ 100</div>
+                    </div>
+                    <div class="grade-badge" id="res-grade">EXCELLENT</div>
+                    <p class="metric-subtext" id="res-verdict">Evaluation complete.</p>
+                </div>
+
+                <!-- Sandbox Functional Verification Card -->
+                <div class="glass-card metric-card">
+                    <div class="metric-header">Docker Sandbox Verification</div>
+                    <div class="status-pill-large" id="res-sandbox-status">
+                        <span class="status-icon">✅</span>
+                        <span id="res-sandbox-text">4 / 4 Inputs Passed (100.0%)</span>
+                    </div>
+                    <div class="sub-metrics">
+                        <div class="sub-metric-item">
+                            <span>Syntax Valid:</span> <strong id="res-syntax-valid">Yes</strong>
+                        </div>
+                        <div class="sub-metric-item">
+                            <span>Equivalence Score:</span> <strong id="res-equiv-score">45.0 / 45.0</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Semantic Risk Flags Card -->
+                <div class="glass-card metric-card">
+                    <div class="metric-header">Semantic Risk Detection</div>
+                    <div id="res-risks-container" class="risks-list">
+                        <div class="no-risks-item">✓ Zero semantic risks flagged</div>
+                    </div>
+                </div>
+
+                <!-- Computational Complexity Card -->
+                <div class="glass-card metric-card">
+                    <div class="metric-header">Big-O Complexity Match</div>
+                    <div class="complexity-comparison">
+                        <div class="comp-box">
+                            <span class="comp-label">Source</span>
+                            <span class="comp-val" id="res-src-comp">O(log n)</span>
+                        </div>
+                        <div class="comp-arrow">➔</div>
+                        <div class="comp-box">
+                            <span class="comp-label">Target</span>
+                            <span class="comp-val" id="res-tgt-comp">O(log n)</span>
+                        </div>
+                    </div>
+                    <div class="complexity-status-pill" id="res-comp-status">✓ Complexity Preserved</div>
+                </div>
+            </section>
+
+            <!-- Full Report Modal Trigger -->
+            <div id="report-section" class="report-container hidden">
+                <button class="btn-secondary" onclick="toggleMarkdownReport()">
+                    <span id="report-toggle-icon">📄</span> View Full Markdown Preservation Report
+                </button>
+                <div id="report-content" class="glass-card report-box hidden">
+                    <pre><code id="report-markdown-text"></code></pre>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Rosetta AI Code Translation Framework &bull; Built with PyTorch, Tree-Sitter, Docker Sandbox, FastAPI & Google DeepMind Antigravity</p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
