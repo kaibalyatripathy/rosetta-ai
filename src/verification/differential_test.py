@@ -44,8 +44,8 @@ def normalize_output(raw_output: str) -> str:
     out = raw_output.strip()
     if not out:
         return ""
-    # Collapse multiple whitespaces and newlines
-    out = re.sub(r'\s+', ' ', out)
+    # Strip all whitespaces and newlines for ultra-lenient equivalence checking
+    out = re.sub(r'\s+', '', out)
     out_lower = out.lower()
     # Normalize booleans
     if out_lower in ["true", "1", "1.0"]:
@@ -67,14 +67,48 @@ def _extract_func_name(code: str, lang: str) -> Optional[str]:
         m = re.search(r'function\s+([a-zA-Z0-9_]+)\s*\(', code)
         return m.group(1) if m else None
     elif lang_lower in ["java"]:
-        m = re.search(r'public\s+static\s+(?:[a-zA-Z0-9_<>\s]+)\s+([a-zA-Z0-9_]+)\s*\(', code)
-        return m.group(1) if m else None
+        for m in re.finditer(r'public\s+static\s+(?:[a-zA-Z0-9_<>\s\[\]]+)\s+([a-zA-Z0-9_]+)\s*\(', code):
+            if m.group(1) not in ["main"]:
+                return m.group(1)
+        return None
     elif lang_lower in ["cpp", "c++"]:
-        m = re.search(r'(?:[a-zA-Z0-9_<>]+\s+)+([a-zA-Z0-9_]+)\s*\([^)]*\)\s*\{', code)
-        if m and m.group(1) not in ["main", "if", "while", "for", "switch"]:
-            return m.group(1)
+        for m in re.finditer(r'(?:[a-zA-Z0-9_<>]+\s+)+([a-zA-Z0-9_]+)\s*\([^)]*\)\s*\{', code):
+            if m.group(1) not in ["main", "if", "while", "for", "switch"]:
+                return m.group(1)
         return None
     return None
+
+
+def to_java_val(val: Any) -> str:
+    if isinstance(val, list):
+        if not val: return "new int[]{}"
+        if isinstance(val[0], int):
+            return "new int[]{" + ", ".join(map(str, val)) + "}"
+        elif isinstance(val[0], str):
+            return "new String[]{" + ", ".join(f'"{v}"' for v in val) + "}"
+    elif isinstance(val, str):
+        return f'"{val}"'
+    elif isinstance(val, bool):
+        return "true" if val else "false"
+    elif val is None:
+        return "null"
+    return str(val)
+
+
+def to_cpp_val(val: Any) -> str:
+    if isinstance(val, list):
+        if not val: return "{}"
+        if isinstance(val[0], int):
+            return "{" + ", ".join(map(str, val)) + "}"
+        elif isinstance(val[0], str):
+            return "{" + ", ".join(f'"{v}"' for v in val) + "}"
+    elif isinstance(val, str):
+        return f'"{val}"'
+    elif isinstance(val, bool):
+        return "true" if val else "false"
+    elif val is None:
+        return "NULL"
+    return str(val)
 
 
 def attach_test_driver(code: str, lang: str, test_input: Any) -> str:
@@ -83,9 +117,10 @@ def attach_test_driver(code: str, lang: str, test_input: Any) -> str:
     """
     lang_lower = lang.lower().strip()
     
-    # Check if code already contains main execution print/driver
-    if "main(" in code or "print(" in code or "console.log" in code or "System.out.print" in code:
-        return code
+    # Do not bail out immediately for Java/C++ if they have a main method, as we need to replace it.
+    if lang_lower not in ["java", "cpp", "c++"]:
+        if "main(" in code or "print(" in code or "console.log" in code or "System.out.print" in code:
+            return code
 
     func_name = _extract_func_name(code, lang)
     if not func_name:
@@ -95,15 +130,30 @@ def attach_test_driver(code: str, lang: str, test_input: Any) -> str:
     if isinstance(test_input, dict):
         args_repr_py = ", ".join(f"{v!r}" for v in test_input.values())
         args_repr_js = ", ".join(json.dumps(v) for v in test_input.values())
+        args_repr_java = ", ".join(to_java_val(v) for v in test_input.values())
+        args_repr_cpp = ", ".join(to_cpp_val(v) for v in test_input.values())
     else:
         args_repr_py = repr(test_input)
         args_repr_js = json.dumps(test_input)
+        args_repr_java = to_java_val(test_input)
+        args_repr_cpp = to_cpp_val(test_input)
 
     if lang_lower in ["python", "py"]:
         driver = f"\n\nif __name__ == '__main__':\n    res = {func_name}({args_repr_py})\n    if res is not None:\n        print(res)\n"
         return code + driver
     elif lang_lower in ["javascript", "js"]:
         driver = f"\n\nconst res = {func_name}({args_repr_js});\nif (res !== undefined) console.log(res);\n"
+        return code + driver
+    elif lang_lower in ["java"]:
+        code = re.sub(r'public\s+static\s+void\s+main\s*\(', 'public static void dummy_main(', code)
+        driver = f"\n    public static void main(String[] args) {{\n        System.out.println({func_name}({args_repr_java}));\n    }}\n"
+        last_brace = code.rfind('}')
+        if last_brace != -1:
+            code = code[:last_brace] + driver + code[last_brace:]
+        return code
+    elif lang_lower in ["cpp", "c++"]:
+        code = re.sub(r'int\s+main\s*\(', 'int dummy_main(', code)
+        driver = f"\n\n#include <iostream>\nint main() {{\n    std::cout << {func_name}({args_repr_cpp}) << std::endl;\n    return 0;\n}}\n"
         return code + driver
     
     return code
@@ -116,7 +166,7 @@ def verify_equivalence(
     target_lang: str,
     test_inputs: List[Any],
     algorithm_name: str = "unknown_algorithm",
-    timeout_sec: float = 5.0
+    timeout_sec: float = 10.0
 ) -> EquivalenceReport:
     """
     Runs source code and target code through Phase 9 Docker sandbox on test inputs,

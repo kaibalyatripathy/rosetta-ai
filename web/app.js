@@ -65,6 +65,10 @@ function loadPreset(presetKey) {
     }
 }
 
+document.getElementById('src-code').addEventListener('input', () => {
+    currentAlgorithm = 'custom';
+});
+
 async function handleTranslate() {
     const srcCode = document.getElementById('src-code').value.trim();
     const srcLang = document.getElementById('src-lang').value;

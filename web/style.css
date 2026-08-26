@@ -244,6 +244,7 @@ textarea#src-code {
     color: #F3F4F6;
     padding: 16px;
     font-family: var(--font-mono);
+    font-variant-ligatures: none;
     font-size: 14px;
     line-height: 1.6;
     resize: none;
@@ -260,6 +261,7 @@ textarea#src-code {
 
 .code-display {
     font-family: var(--font-mono);
+    font-variant-ligatures: none;
     font-size: 14px;
     line-height: 1.6;
     color: #00F2FE;

@@ -136,10 +136,28 @@ def translate_code(req: TranslationRequest) -> TranslationResponse:
         gen_target_code = re.sub(r'^(from\s+)?' + re.escape(src_lang) + r'\s+to\s+' + re.escape(tgt_lang) + r'\s*:\s*', '', gen_target_code, flags=re.IGNORECASE).strip()
 
         # 2. Phase 8: Refactoring Pass
-        refactored_info = refactor(gen_target_code, tgt_lang)
+        refactored_info = refactor(
+            source_code=src_code,
+            source_lang=src_lang,
+            target_code=gen_target_code,
+            target_lang=tgt_lang
+        )
         final_target_code = refactored_info["refactored_code"]
 
-        # 3. Phase 9, 10, 13, 14, 15: Sandboxed Verification & Preservation Scoring
+        # 3. Phase 9: Self-Correction Repair Loop
+        test_inputs = get_test_inputs(algo)
+        from src.self_correction.corrector import attempt_correction
+        correction_res = attempt_correction(
+            source_code=src_code,
+            source_lang=src_lang,
+            target_code=final_target_code,
+            target_lang=tgt_lang,
+            test_inputs=test_inputs,
+            algorithm_name=algo
+        )
+        final_target_code = correction_res.corrected_code
+
+        # 4. Phase 10, 13, 14, 15: Sandboxed Verification & Preservation Scoring
         scoring_report: PreservationScoreReport = calculate_preservation_score(
             source_code=src_code,
             source_lang=src_lang,
@@ -149,8 +167,6 @@ def translate_code(req: TranslationRequest) -> TranslationResponse:
             round_trip_passed=False
         )
 
-        # Extract Phase 10 details
-        test_inputs = get_test_inputs(algo)
         equiv_report: EquivalenceReport = verify_equivalence(
             source_code=src_code,
             source_lang=src_lang,
