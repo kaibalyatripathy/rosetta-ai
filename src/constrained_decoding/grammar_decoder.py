@@ -70,6 +70,7 @@ class ConstrainedGrammarDecoder:
                 self.gnn_model.load_state_dict(torch.load(GNN_CHECKPOINT_PATH, map_location=self.device, weights_only=True))
             except Exception:
                 pass
+        self.gnn_model.to(self.device)
         self.gnn_model.eval()
 
         self.seq2seq_model = ConditionedSeq2SeqModel(model_name=model_name)

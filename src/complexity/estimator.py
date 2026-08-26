@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional, Tuple
 
 from src.embeddings.codebert.codebert_extractor import get_code_embedding
 from src.gnn.graph_builder import build_pyg_ast_graph
-from src.refactor.refactor import call_gemini_llm
+from src.refactor.refactor import call_gemini_llm, call_local_llm
 
 logger = logging.getLogger("RosettaAI.ComplexityEstimator")
 
@@ -135,7 +135,10 @@ TIME: <Big-O>
 SPACE: <Big-O>
 JUSTIFICATION: <sentence>
 """
-    llm_resp = call_gemini_llm(prompt)
+    llm_resp = call_local_llm(prompt)
+    if not llm_resp:
+        llm_resp = call_gemini_llm(prompt)
+        
     if llm_resp:
         m_time = re.search(r'TIME:\s*(O\([^\n]+\))', llm_resp, re.IGNORECASE)
         m_space = re.search(r'SPACE:\s*(O\([^\n]+\))', llm_resp, re.IGNORECASE)

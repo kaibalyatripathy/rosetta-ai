@@ -150,7 +150,7 @@ def prepare_dataset_splits(seed: int = 42) -> Tuple[List[Dict[str, Any]], List[D
 def train_seq2seq_model(
     model_name: str = "t5-small",
     epochs: int = 10,
-    batch_size: int = 16,
+    batch_size: int = 8,
     lr: float = 5e-4,
     sanity_check: bool = False
 ) -> Dict[str, Any]:
@@ -185,7 +185,7 @@ def train_seq2seq_model(
     for epoch in range(1, epochs + 1):
         model.train()
         total_train_loss = 0.0
-        for batch in train_loader:
+        for batch_idx, batch in enumerate(train_loader):
             optimizer.zero_grad()
             input_ids = batch["input_ids"].to(device)
             attention_mask = batch["attention_mask"].to(device)
@@ -197,6 +197,9 @@ def train_seq2seq_model(
             loss.backward()
             optimizer.step()
             total_train_loss += loss.item()
+            
+            if (batch_idx + 1) % 200 == 0:
+                logger.info(f"Epoch {epoch:02d} | Batch {batch_idx+1}/{len(train_loader)} | Loss: {loss.item():.4f}")
 
         avg_train_loss = round(total_train_loss / len(train_loader), 4)
         train_losses.append(avg_train_loss)

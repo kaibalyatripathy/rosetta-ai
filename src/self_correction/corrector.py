@@ -10,7 +10,7 @@ import logging
 import re
 from typing import Dict, List, Any, Optional
 
-from src.refactor.refactor import call_gemini_llm
+from src.refactor.refactor import call_gemini_llm, call_local_llm
 from src.verification.differential_test import verify_equivalence, EquivalenceReport, InputResult
 
 logger = logging.getLogger("RosettaAI.SelfCorrection")
@@ -138,8 +138,11 @@ Task:
 Fix the {target_lang} code so that it compiles cleanly and produces the exact expected output.
 Return ONLY the corrected {target_lang} code inside ```{target_lang} ``` code blocks.
 """
-
-        llm_reply = call_gemini_llm(prompt)
+        llm_reply = call_local_llm(prompt)
+        if not llm_reply:
+            logger.info("Local LLM failed for self-correction, falling back to Gemini...")
+            llm_reply = call_gemini_llm(prompt)
+            
         repaired_code = None
 
         if llm_reply:
