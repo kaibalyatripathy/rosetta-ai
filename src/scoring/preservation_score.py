@@ -121,7 +121,7 @@ def calculate_preservation_score(
 
     report_text = f"""# Rosetta AI — Semantic Preservation Report
 
-**Translation Pair**: `{src_norm}` $\\rightarrow$ `{tgt_norm}`
+**Translation Pair**: `{src_norm}` ➔ `{tgt_norm}`
 **Algorithm Fixture**: `{algorithm_name}`
 **Composite Semantic Preservation Score**: `{composite_score:.1f} / 100` (`{grade}`)
 
@@ -154,7 +154,7 @@ def calculate_preservation_score(
 | **Functional Equivalence** | Phase 10 | {equiv_report.passed_inputs}/{equiv_report.total_inputs} inputs passed ({equiv_report.pass_rate:.1f}%) | `{score_equiv:.1f}` | `45.0` |
 | **Semantic Risk Detection** | Phase 13 | {risk_summary_str} | `{score_risk:.1f}` | `25.0` |
 | **Complexity Preservation** | Phase 14 | Source: `{src_comp.time_complexity}` \\| Target: `{tgt_comp.time_complexity}` ({complexity_status}) | `{score_complexity:.1f}` | `15.0` |
-| **Round-Trip Stability** | Phase 12 | Path: `{src_norm}` $\\rightarrow$ `{tgt_norm}` $\\rightarrow$ `{src_norm}` ({round_trip_status}) | `{score_round_trip:.1f}` | `15.0` |
+| **Round-Trip Stability** | Phase 12 | Path: `{src_norm}` ➔ `{tgt_norm}` ➔ `{src_norm}` ({round_trip_status}) | `{score_round_trip:.1f}` | `15.0` |
 
 ---
 

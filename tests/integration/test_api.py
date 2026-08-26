@@ -17,6 +17,20 @@ logger = logging.getLogger("RosettaAI.TestAPI")
 client = TestClient(app)
 
 
+import json
+
+def _parse_response(response):
+    assert response.status_code == 200, f"API error: {response.text}"
+    text = response.text.strip()
+    if text.startswith("{") and text.endswith("}") and "\n" not in text:
+        return response.json()
+    lines = [json.loads(line) for line in text.split("\n") if line.strip()]
+    for item in reversed(lines):
+        if "result" in item:
+            return item["result"]
+    return lines[-1]
+
+
 def test_health_endpoint():
     """Verifies health check endpoint returns 200 OK and valid status."""
     response = client.get("/health")
@@ -25,6 +39,17 @@ def test_health_endpoint():
     assert data["status"] == "ok"
     assert data["docker_sandbox_active"] is True
     assert "javascript" in data["supported_languages"]
+
+
+def test_validate_syntax_endpoint():
+    """Verifies real Tree-Sitter / Compiler syntax verification."""
+    valid_res = client.post("/validate-syntax", json={"code": "def foo(x):\n    return x + 1", "language": "python"})
+    assert valid_res.status_code == 200
+    assert valid_res.json()["valid"] is True
+
+    invalid_res = client.post("/validate-syntax", json={"code": "def foo(x\n    return x + 1", "language": "python"})
+    assert invalid_res.status_code == 200
+    assert invalid_res.json()["valid"] is False
 
 
 def test_translate_python_to_javascript():
@@ -49,8 +74,7 @@ def test_translate_python_to_javascript():
     }
 
     response = client.post("/translate", json=payload)
-    assert response.status_code == 200, f"API error: {response.text}"
-    data = response.json()
+    data = _parse_response(response)
 
     # Assert real responses come back with all expected fields populated
     assert "target_code" in data and len(data["target_code"]) > 0
@@ -84,8 +108,7 @@ def test_translate_python_to_cpp():
     }
 
     response = client.post("/translate", json=payload)
-    assert response.status_code == 200, f"API error: {response.text}"
-    data = response.json()
+    data = _parse_response(response)
 
     assert "target_code" in data and len(data["target_code"]) > 0
     assert data["source_lang"] == "python"
@@ -117,12 +140,12 @@ def test_translate_java_to_python():
     }
 
     response = client.post("/translate", json=payload)
-    assert response.status_code == 200, f"API error: {response.text}"
-    data = response.json()
+    data = _parse_response(response)
 
     assert "target_code" in data and len(data["target_code"]) > 0
     assert data["source_lang"] == "java"
     assert data["target_lang"] == "python"
     assert data["composite_score"] >= 0.0
+    assert data["passed_inputs"] >= 0
 
     logger.info(f"Java -> Python Translation Success: Score {data['composite_score']:.1f} ({data['quality_grade']})")

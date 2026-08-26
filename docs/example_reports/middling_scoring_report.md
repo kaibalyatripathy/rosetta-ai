@@ -1,8 +1,8 @@
 # Rosetta AI — Semantic Preservation Report
 
-**Translation Pair**: `python` $\rightarrow$ `javascript`
+**Translation Pair**: `python` ➔ `javascript`
 **Algorithm Fixture**: `binary_search`
-**Composite Semantic Preservation Score**: `40.5 / 100` (`POOR / FAILING`)
+**Composite Semantic Preservation Score**: `63.0 / 100` (`MODERATE / MARGINAL`)
 
 ---
 
@@ -51,10 +51,10 @@ function binarySearch(arr, target) {
 
 | Evaluation Dimension | Phase | Measured Signal / Status | Score Contribution | Max Points |
 |:---|:---|:---|:---|:---|
-| **Functional Equivalence** | Phase 10 | 2/4 inputs passed (50.0%) | `22.5` | `45.0` |
+| **Functional Equivalence** | Phase 10 | 4/4 inputs passed (100.0%) | `45.0` | `45.0` |
 | **Semantic Risk Detection** | Phase 13 | 2 risk flags | `3.0` | `25.0` |
 | **Complexity Preservation** | Phase 14 | Source: `O(log n)` \| Target: `O(log n)` (Preserved) | `15.0` | `15.0` |
-| **Round-Trip Stability** | Phase 12 | Path: `python` $\rightarrow$ `javascript` $\rightarrow$ `python` (Failed / Drifted) | `0.0` | `15.0` |
+| **Round-Trip Stability** | Phase 12 | Path: `python` ➔ `javascript` ➔ `python` (Failed / Drifted) | `0.0` | `15.0` |
 
 ---
 
@@ -65,5 +65,5 @@ function binarySearch(arr, target) {
 ---
 
 ## 5. Final Quality Verdict
-**Grade**: `POOR / FAILING` (40.5 / 100)
-**Summary**: Translation failed functional equivalence sandbox execution or exhibited severe semantic risks.
+**Grade**: `MODERATE / MARGINAL` (63.0 / 100)
+**Summary**: Translation passes partial inputs but contains risk flags or structural differences.

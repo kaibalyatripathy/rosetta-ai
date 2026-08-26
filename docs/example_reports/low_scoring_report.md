@@ -1,6 +1,6 @@
 # Rosetta AI — Semantic Preservation Report
 
-**Translation Pair**: `python` $\rightarrow$ `javascript`
+**Translation Pair**: `python` ➔ `javascript`
 **Algorithm Fixture**: `bubble_sort`
 **Composite Semantic Preservation Score**: `25.0 / 100` (`POOR / FAILING`)
 
@@ -40,7 +40,7 @@ python to javascript: def bubble_sort(arr): n = len(arr) for i in range(n): if a
 | **Functional Equivalence** | Phase 10 | 0/4 inputs passed (0.0%) | `0.0` | `45.0` |
 | **Semantic Risk Detection** | Phase 13 | 1 risk flags | `10.0` | `25.0` |
 | **Complexity Preservation** | Phase 14 | Source: `O(n^2)` \| Target: `O(n^2)` (Preserved) | `15.0` | `15.0` |
-| **Round-Trip Stability** | Phase 12 | Path: `python` $\rightarrow$ `javascript` $\rightarrow$ `python` (Failed / Drifted) | `0.0` | `15.0` |
+| **Round-Trip Stability** | Phase 12 | Path: `python` ➔ `javascript` ➔ `python` (Failed / Drifted) | `0.0` | `15.0` |
 
 ---
 

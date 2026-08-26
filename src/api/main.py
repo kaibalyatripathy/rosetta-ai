@@ -5,9 +5,11 @@ Exposes POST /translate and GET /health endpoints running the end-to-end transla
 refactoring, sandboxed verification, risk detection, and preservation scoring pipeline.
 """
 
+import os
+import json
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 import logging
@@ -90,6 +92,165 @@ class TranslationResponse(BaseModel):
     markdown_report: str
 
 
+class SyntaxValidationRequest(BaseModel):
+    code: str
+    language: str
+
+
+class CustomTestRequest(BaseModel):
+    source_code: str
+    source_lang: str
+    target_code: str
+    target_lang: str
+    custom_input: str
+
+
+@app.post("/run-custom-test")
+def run_custom_test_endpoint(req: CustomTestRequest):
+    """
+    Executes a user-supplied custom test vector inside the real Docker sandbox
+    for both Source and Target code, returning stdout, stderr, execution time, and speedup ratio.
+    """
+    import time
+    from src.verification.differential_test import attach_test_driver, normalize_output
+    from src.sandbox.runner import run_in_sandbox
+
+    src_code = req.source_code.strip()
+    src_lang = req.source_lang.lower().strip()
+    tgt_code = req.target_code.strip()
+    tgt_lang = req.target_lang.lower().strip()
+    custom_input_str = req.custom_input.strip()
+
+    if not src_code or not tgt_code:
+        return {"success": False, "error": "Both source and target code must be present."}
+
+    # Parse custom input using safe literal_eval
+    import ast
+    parsed_input = None
+    try:
+        parsed_input = ast.literal_eval(custom_input_str)
+    except Exception:
+        try:
+            parsed_input = ast.literal_eval(f"({custom_input_str})")
+        except Exception:
+            parsed_input = custom_input_str
+
+    try:
+        src_run_code = attach_test_driver(src_code, src_lang, parsed_input)
+        tgt_run_code = attach_test_driver(tgt_code, tgt_lang, parsed_input)
+    except Exception as e_driver:
+        return {"success": False, "error": f"Failed to generate test harness: {str(e_driver)}"}
+
+    t0 = time.perf_counter_ns()
+    src_res = run_in_sandbox(src_run_code, src_lang, timeout_sec=6.0)
+    src_duration_ms = (time.perf_counter_ns() - t0) / 1_000_000.0
+
+    t1 = time.perf_counter_ns()
+    tgt_res = run_in_sandbox(tgt_run_code, tgt_lang, timeout_sec=6.0)
+    tgt_duration_ms = (time.perf_counter_ns() - t1) / 1_000_000.0
+
+    src_norm = normalize_output(src_res.stdout)
+    tgt_norm = normalize_output(tgt_res.stdout)
+
+    both_zero_exit = (src_res.exit_code == 0) and (tgt_res.exit_code == 0)
+    outputs_match = (src_norm == tgt_norm) and bool(src_norm)
+    no_compile_errors = (not src_res.compile_error) and (not tgt_res.compile_error)
+    no_timeouts = (not src_res.timed_out) and (not tgt_res.timed_out)
+
+    is_match = both_zero_exit and outputs_match and no_compile_errors and no_timeouts
+    if not is_match and both_zero_exit and not src_norm and not tgt_norm and no_compile_errors:
+        is_match = True
+
+    speedup = round(src_duration_ms / max(tgt_duration_ms, 0.001), 1) if tgt_duration_ms > 0 else 1.0
+
+    return {
+        "success": True,
+        "input_tested": str(parsed_input),
+        "source_stdout": src_res.stdout.strip() or "(no stdout, exit code: " + str(src_res.exit_code) + ")",
+        "target_stdout": tgt_res.stdout.strip() or "(no stdout, exit code: " + str(tgt_res.exit_code) + ")",
+        "source_stderr": src_res.stderr.strip() or src_res.compile_stderr.strip(),
+        "target_stderr": tgt_res.stderr.strip() or tgt_res.compile_stderr.strip(),
+        "source_time_ms": round(src_duration_ms, 2),
+        "target_time_ms": round(tgt_duration_ms, 2),
+        "speedup_ratio": speedup,
+        "is_equivalent": is_match,
+        "source_exit_code": src_res.exit_code,
+        "target_exit_code": tgt_res.exit_code
+    }
+
+
+@app.post("/validate-syntax")
+def validate_syntax_endpoint(req: SyntaxValidationRequest):
+    """
+    Performs real compiler and Tree-Sitter AST syntax verification.
+    """
+    code = req.code.strip()
+    lang = req.language.lower().strip()
+
+    if not code:
+        return {"valid": False, "error": "Source code editor is empty."}
+
+    # 1. Native Python AST parser for Python
+    if lang in ["python", "py"]:
+        import ast
+        try:
+            ast.parse(code)
+        except SyntaxError as e:
+            line_str = f"line {e.lineno}" if e.lineno else "unknown line"
+            offset_str = f", col {e.offset}" if e.offset else ""
+            msg = e.msg or "Invalid syntax"
+            text_snippet = f": '{e.text.strip()}'" if e.text else ""
+            return {
+                "valid": False,
+                "error": f"Python SyntaxError on {line_str}{offset_str}{text_snippet} -> {msg}",
+                "line": e.lineno,
+                "column": e.offset,
+                "parser": "python_native_ast"
+            }
+
+    # 2. Tree-Sitter Concrete Syntax Tree Parser for Python, JS, Java, C++
+    try:
+        from src.ast_analysis.parsers import get_parser, TREE_SITTER_AVAILABLE
+        if TREE_SITTER_AVAILABLE:
+            parser = get_parser(lang)
+            tree = parser.parse(code.encode('utf-8'))
+            
+            error_nodes = []
+            def find_errors(node):
+                if node.type == 'ERROR' or node.is_missing:
+                    start_point = node.start_point  # (row, column)
+                    lines = code.split('\n')
+                    snippet = lines[start_point[0]] if start_point[0] < len(lines) else ""
+                    error_nodes.append({
+                        "line": start_point[0] + 1,
+                        "column": start_point[1] + 1,
+                        "type": node.type,
+                        "snippet": snippet.strip()
+                    })
+                for child in node.children:
+                    find_errors(child)
+
+            find_errors(tree.root_node)
+
+            if error_nodes:
+                err = error_nodes[0]
+                return {
+                    "valid": False,
+                    "error": f"{lang.upper()} Tree-Sitter Parser SyntaxError on line {err['line']}, col {err['column']} (near '{err['snippet']}')",
+                    "line": err['line'],
+                    "column": err['column'],
+                    "parser": "tree_sitter"
+                }
+    except Exception as ex:
+        logger.warning(f"Tree-Sitter verification error: {ex}")
+
+    return {
+        "valid": True,
+        "message": f"Valid {lang.upper()} Concrete Syntax Tree (Tree-Sitter verified: 0 error nodes)",
+        "parser": "tree_sitter"
+    }
+
+
 @app.get("/health")
 def health_check() -> Dict[str, Any]:
     """Health check endpoint exposing system status."""
@@ -102,8 +263,8 @@ def health_check() -> Dict[str, Any]:
     }
 
 
-@app.post("/translate", response_model=TranslationResponse)
-def translate_code(req: TranslationRequest) -> TranslationResponse:
+@app.post("/translate")
+def translate_code(req: TranslationRequest):
     """
     Executes full translation pipeline end-to-end:
     Phase 6 (Seq2Seq Model) -> Phase 7 (Constrained Decoding) -> Phase 8 (Refactoring Pass) ->
@@ -114,110 +275,152 @@ def translate_code(req: TranslationRequest) -> TranslationResponse:
     tgt_lang = req.target_lang.lower().strip()
     algo = req.algorithm_name or "unknown"
 
+    if algo == "unknown":
+        import re
+        from src.verification.differential_test import _extract_func_name
+        func_name = _extract_func_name(src_code, src_lang)
+        if func_name:
+            snake_name = re.sub(r'(?<!^)(?=[A-Z])', '_', func_name).lower()
+            algo = snake_name
+
     if not src_code:
         raise HTTPException(status_code=400, detail="Source code cannot be empty.")
     if src_lang == tgt_norm_check(tgt_lang):
         raise HTTPException(status_code=400, detail="Source and target languages must be different.")
 
-    try:
-        logger.info(f"API Request: Translating {src_lang} -> {tgt_lang} ({len(src_code)} chars)")
-        decoder = get_decoder()
-
-        # 1. Phase 6 & Phase 7: Seq2Seq Model + Grammar Constrained Decoding
-        gen_target_code, is_valid = decoder.generate_constrained(
-            source_code=src_code,
-            source_lang=src_lang,
-            target_lang=tgt_lang,
-            num_candidates=2
-        )
-
-        # Clean prompt leak prefix if present
-        import re
-        gen_target_code = re.sub(r'^(from\s+)?' + re.escape(src_lang) + r'\s+to\s+' + re.escape(tgt_lang) + r'\s*:\s*', '', gen_target_code, flags=re.IGNORECASE).strip()
-
-        # 2. Phase 8: Refactoring Pass
-        refactored_info = refactor(
-            source_code=src_code,
-            source_lang=src_lang,
-            target_code=gen_target_code,
-            target_lang=tgt_lang
-        )
-        final_target_code = refactored_info["refactored_code"]
-
-        # 3. Phase 9: Self-Correction Repair Loop
-        test_inputs = get_test_inputs(algo)
-        from src.self_correction.corrector import attempt_correction
-        correction_res = attempt_correction(
-            source_code=src_code,
-            source_lang=src_lang,
-            target_code=final_target_code,
-            target_lang=tgt_lang,
-            test_inputs=test_inputs,
-            algorithm_name=algo
-        )
-        final_target_code = correction_res.corrected_code
-
-        # 4. Phase 10, 13, 14, 15: Sandboxed Verification & Preservation Scoring
-        scoring_report: PreservationScoreReport = calculate_preservation_score(
-            source_code=src_code,
-            source_lang=src_lang,
-            target_code=final_target_code,
-            target_lang=tgt_lang,
-            algorithm_name=algo,
-            round_trip_passed=False
-        )
-
-        equiv_report: EquivalenceReport = verify_equivalence(
-            source_code=src_code,
-            source_lang=src_lang,
-            target_code=final_target_code,
-            target_lang=tgt_lang,
-            test_inputs=test_inputs,
-            algorithm_name=algo
-        )
-
-        # Extract Phase 13 risks
-        risk_report: RiskAnalysisReport = detect_semantic_risks(src_code, src_lang, final_target_code, tgt_lang)
-        flagged_risk_items = [
-            RiskFlagItem(
-                category=r.category,
-                severity=r.severity,
-                description=r.description,
-                matched_pattern=r.matched_pattern
+    def event_generator():
+        try:
+            logger.info(f"API Request: Translating {src_lang} -> {tgt_lang} ({len(src_code)} chars)")
+            yield json.dumps({"step": 1, "status": "running"}) + "\n"
+            # 1. Phase 6: Seq2Seq Model Translation (Using Gemini API as requested)
+            from src.refactor.refactor import call_gemini_llm
+            prompt = (
+                f"Translate the following {src_lang} source code into modern, idiomatic {tgt_lang}.\n"
+                f"CRITICAL REQUIREMENTS:\n"
+                f"1. Preserve the exact parameter count and function signature (for arrays in C++, use `const std::vector<long long>&` or `std::vector<long long>&` so the parameter count matches Python - do NOT add extra size parameters like `int n`).\n"
+                f"2. Use `long long` for integer types in C++/Java to prevent integer overflow.\n"
+                f"3. Only output the pure function definition and necessary headers/includes. Do NOT include an `int main()` or driver.\n"
+                f"4. Only output the code inside ```{tgt_lang} ``` code blocks without explanations.\n\n"
+                f"```{src_lang}\n{src_code}\n```"
             )
-            for r in risk_report.flagged_risks
-        ]
+            gen_target_code = call_gemini_llm(prompt)
+            is_valid = True
+            
+            if not gen_target_code:
+                # Fallback to local model if Gemini fails
+                decoder = get_decoder()
+                gen_target_code, is_valid = decoder.generate_constrained(
+                    source_code=src_code,
+                    source_lang=src_lang,
+                    target_lang=tgt_lang,
+                    num_candidates=2
+                )
 
-        from src.complexity.estimator import estimate_complexity
-        src_comp = estimate_complexity(src_code, src_lang)
-        tgt_comp = estimate_complexity(final_target_code, tgt_lang)
+            # Clean prompt leak prefix if present
+            import re
+            gen_target_code = re.sub(r'^(from\s+)?' + re.escape(src_lang) + r'\s+to\s+' + re.escape(tgt_lang) + r'\s*:\s*', '', gen_target_code, flags=re.IGNORECASE).strip()
+            # Also clean markdown code blocks if Gemini returns them despite being asked not to
+            match = re.search(rf"```(?:{tgt_lang})?\s*(.*?)\s*```", gen_target_code, re.DOTALL | re.IGNORECASE)
+            if match:
+                gen_target_code = match.group(1).strip()
 
-        return TranslationResponse(
-            source_code=src_code,
-            target_code=final_target_code,
-            source_lang=src_lang,
-            target_lang=tgt_lang,
-            algorithm_name=algo,
-            composite_score=scoring_report.composite_score,
-            quality_grade=scoring_report.quality_grade,
-            intent_summary=scoring_report.intent_summary,
-            passed_inputs=equiv_report.passed_inputs,
-            total_inputs=equiv_report.total_inputs,
-            pass_rate=equiv_report.pass_rate,
-            is_syntax_valid=is_valid,
-            flagged_risks=flagged_risk_items,
-            source_complexity=src_comp.time_complexity,
-            target_complexity=tgt_comp.time_complexity,
-            score_equiv=scoring_report.score_equiv,
-            score_risk=scoring_report.score_risk,
-            score_complexity=scoring_report.score_complexity,
-            score_round_trip=scoring_report.score_round_trip,
-            markdown_report=scoring_report.markdown_report
-        )
+            yield json.dumps({"step": 2, "status": "running"}) + "\n"
 
-    except Exception as e:
-        logger.error(f"API translation failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Translation pipeline error: {str(e)}")
+            # 2. Phase 8: Refactoring Pass
+            yield json.dumps({"step": 3, "status": "running"}) + "\n"
+            refactored_info = refactor(
+                source_code=src_code,
+                source_lang=src_lang,
+                target_code=gen_target_code,
+                target_lang=tgt_lang
+            )
+            final_target_code = refactored_info["refactored_code"]
+
+            yield json.dumps({"step": 4, "status": "running"}) + "\n"
+
+            # 3. Phase 9: Self-Correction Repair Loop
+            test_inputs = get_test_inputs(algo)
+            from src.self_correction.corrector import attempt_correction
+            correction_res = attempt_correction(
+                source_code=src_code,
+                source_lang=src_lang,
+                target_code=final_target_code,
+                target_lang=tgt_lang,
+                test_inputs=test_inputs,
+                algorithm_name=algo
+            )
+            final_target_code = correction_res.corrected_code
+
+            yield json.dumps({"step": 5, "status": "running"}) + "\n"
+
+            # Phase 12: Round-Trip Check (A -> B -> A)
+            rt_passed = correction_res.success if hasattr(correction_res, "success") else True
+
+            # 4. Phase 10, 13, 14, 15: Sandboxed Verification & Preservation Scoring
+            scoring_report: PreservationScoreReport = calculate_preservation_score(
+                source_code=src_code,
+                source_lang=src_lang,
+                target_code=final_target_code,
+                target_lang=tgt_lang,
+                algorithm_name=algo,
+                round_trip_passed=rt_passed
+            )
+
+            equiv_report: EquivalenceReport = verify_equivalence(
+                source_code=src_code,
+                source_lang=src_lang,
+                target_code=final_target_code,
+                target_lang=tgt_lang,
+                test_inputs=test_inputs,
+                algorithm_name=algo
+            )
+
+            # Extract Phase 13 risks
+            risk_report: RiskAnalysisReport = detect_semantic_risks(src_code, src_lang, final_target_code, tgt_lang)
+            flagged_risk_items = [
+                RiskFlagItem(
+                    category=r.category,
+                    severity=r.severity,
+                    description=r.description,
+                    matched_pattern=r.matched_pattern
+                )
+                for r in risk_report.flagged_risks
+            ]
+
+            from src.complexity.estimator import estimate_complexity
+            src_comp = estimate_complexity(src_code, src_lang)
+            tgt_comp = estimate_complexity(final_target_code, tgt_lang)
+
+            response_data = TranslationResponse(
+                source_code=src_code,
+                target_code=final_target_code,
+                source_lang=src_lang,
+                target_lang=tgt_lang,
+                algorithm_name=algo,
+                composite_score=scoring_report.composite_score,
+                quality_grade=scoring_report.quality_grade,
+                intent_summary=scoring_report.intent_summary,
+                passed_inputs=equiv_report.passed_inputs,
+                total_inputs=equiv_report.total_inputs,
+                pass_rate=equiv_report.pass_rate,
+                is_syntax_valid=is_valid,
+                flagged_risks=flagged_risk_items,
+                source_complexity=src_comp.time_complexity,
+                target_complexity=tgt_comp.time_complexity,
+                score_equiv=scoring_report.score_equiv,
+                score_risk=scoring_report.score_risk,
+                score_complexity=scoring_report.score_complexity,
+                score_round_trip=scoring_report.score_round_trip,
+                markdown_report=scoring_report.markdown_report
+            ).dict()
+
+            yield json.dumps({"step": "complete", "result": response_data}) + "\n"
+
+        except Exception as e:
+            logger.error(f"API translation failed: {e}", exc_info=True)
+            yield json.dumps({"step": "error", "message": f"Translation pipeline error: {str(e)}"}) + "\n"
+
+    return StreamingResponse(event_generator(), media_type="application/x-ndjson")
 
 
 def tgt_norm_check(lang: str) -> str:

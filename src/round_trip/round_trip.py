@@ -63,7 +63,7 @@ def round_trip_check(
         if gen_b_code.lower().startswith(prefix_b):
             gen_b_code = gen_b_code[len(prefix_b):].strip()
 
-        b_refactored = refactor(gen_b_code, mid_norm)["refactored_code"]
+        b_refactored = refactor(source_code, src_norm, gen_b_code, mid_norm)["refactored_code"]
 
         # Hop 2: Reverse Translation (B -> A)
         gen_a_code, _ = decoder.generate_constrained(
@@ -77,7 +77,7 @@ def round_trip_check(
         if gen_a_code.lower().startswith(prefix_a):
             gen_a_code = gen_a_code[len(prefix_a):].strip()
 
-        a_final = refactor(gen_a_code, src_norm)["refactored_code"]
+        a_final = refactor(b_refactored, mid_norm, gen_a_code, src_norm)["refactored_code"]
 
         # Differential Verification (Original Source A vs Twice-Translated A)
         report: EquivalenceReport = verify_equivalence(

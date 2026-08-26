@@ -1,6 +1,6 @@
 # Rosetta AI — Semantic Preservation Report
 
-**Translation Pair**: `python` $\rightarrow$ `javascript`
+**Translation Pair**: `python` ➔ `javascript`
 **Algorithm Fixture**: `binary_search`
 **Composite Semantic Preservation Score**: `100.0 / 100` (`EXCELLENT`)
 
@@ -54,7 +54,7 @@ function binarySearch(arr, target) {
 | **Functional Equivalence** | Phase 10 | 4/4 inputs passed (100.0%) | `45.0` | `45.0` |
 | **Semantic Risk Detection** | Phase 13 | Zero risks flagged | `25.0` | `25.0` |
 | **Complexity Preservation** | Phase 14 | Source: `O(log n)` \| Target: `O(log n)` (Preserved) | `15.0` | `15.0` |
-| **Round-Trip Stability** | Phase 12 | Path: `python` $\rightarrow$ `javascript` $\rightarrow$ `python` (Passed) | `15.0` | `15.0` |
+| **Round-Trip Stability** | Phase 12 | Path: `python` ➔ `javascript` ➔ `python` (Passed) | `15.0` | `15.0` |
 
 ---
 

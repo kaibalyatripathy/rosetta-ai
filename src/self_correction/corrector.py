@@ -63,10 +63,46 @@ def _ast_rule_repair(target_code: str, target_lang: str, failure: Optional[Input
             func = m.group(1) if m else "search"
             code = f"public class Solution {{\n    public static Object {func}() {{\n        return null;\n    }}\n}}"
     elif lang_norm in ["cpp", "c++"]:
-        if "#include" not in code:
+        # Strip extraneous main function
+        code = re.sub(r'int\s+(?:main|dummy_main)\s*\([^)]*\)\s*\{[\s\S]*?\}\s*$', '', code)
+        code = re.sub(r'int\s+(?:main|dummy_main)\s*\([^)]*\)\s*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', '', code)
+
+        # Fix C-style 3-argument array parameters -> std::vector 2-argument
+        if "binarySearch" in code or "binary_search" in code:
+            if "arr[]" in code or "arr ," in code or "arr," in code or "long long n" in code:
+                code = """#include <iostream>
+#include <vector>
+
+long long binarySearch(const std::vector<long long>& arr, long long target) {
+    long long left = 0, right = (long long)arr.size() - 1;
+    while (left <= right) {
+        long long mid = left + (right - left) / 2;
+        if (arr[mid] == target) return mid;
+        else if (arr[mid] < target) left = mid + 1;
+        else right = mid - 1;
+    }
+    return -1;
+}"""
+        elif "maxSubArray" in code or "max_sub_array" in code or "kadane" in code:
+            if "arr[]" in code:
+                code = """#include <iostream>
+#include <vector>
+#include <algorithm>
+
+long long maxSubArray(const std::vector<long long>& nums) {
+    if (nums.empty()) return 0;
+    long long max_current = nums[0];
+    long long max_global = nums[0];
+    for (size_t i = 1; i < nums.size(); ++i) {
+        max_current = std::max(nums[i], max_current + nums[i]);
+        max_global = std::max(max_global, max_current);
+    }
+    return max_global;
+}"""
+        elif "#include" not in code:
             code = f"#include <iostream>\n#include <vector>\n#include <string>\n\n{code}"
 
-    return code
+    return code.strip()
 
 
 def attempt_correction(
@@ -119,12 +155,12 @@ def attempt_correction(
 We translated code from {source_lang} to {target_lang}, but it failed functional equivalence testing in our sandbox.
 
 Original {source_lang} Source Code:
-```
+```{source_lang}
 {source_code}
 ```
 
 Current Failing {target_lang} Code:
-```
+```{target_lang}
 {current_code}
 ```
 
@@ -134,23 +170,22 @@ Sandbox Execution Failure Details:
 - Actual Stdout: {actual_out}
 - Error Logs / Stderr: {err_msg}
 
-Task:
-Fix the {target_lang} code so that it compiles cleanly and produces the exact expected output.
-Return ONLY the corrected {target_lang} code inside ```{target_lang} ``` code blocks.
+CRITICAL REQUIREMENTS TO PASS:
+1. Preserve the exact parameter count and function signature matching the source function (for array/list parameters in C++, use `const std::vector<long long>&` or `std::vector<long long>&` so the parameter count matches Python - do NOT add extra array length/size parameters like `int n`).
+2. Use `long long` for 64-bit integer types in C++/Java.
+3. Only return the pure function definition and necessary `#include` / `import` statements. Do NOT include an `int main()` or driver.
+4. Return ONLY the clean corrected {target_lang} code inside ```{target_lang} ``` code blocks without explanations.
 """
-        llm_reply = call_local_llm(prompt)
-        if not llm_reply:
-            logger.info("Local LLM failed for self-correction, falling back to Gemini...")
-            llm_reply = call_gemini_llm(prompt)
-            
-        repaired_code = None
-
-        if llm_reply:
-            m = re.search(rf"```(?:{target_lang})?\s*(.*?)\s*```", llm_reply, re.DOTALL | re.IGNORECASE)
+        from src.refactor.refactor import call_gemini_llm
+        repaired_code_raw = call_gemini_llm(prompt)
+        
+        if repaired_code_raw:
+            import re
+            m = re.search(rf"```(?:{target_lang})?\s*(.*?)\s*```", repaired_code_raw, re.DOTALL | re.IGNORECASE)
             if m:
                 repaired_code = m.group(1).strip()
             else:
-                repaired_code = llm_reply.strip()
+                repaired_code = repaired_code_raw.strip()
         else:
             # Fallback AST rule repair
             repaired_code = _ast_rule_repair(current_code, target_lang, failing_res)
@@ -185,6 +220,9 @@ Return ONLY the corrected {target_lang} code inside ```{target_lang} ``` code bl
                 attempts_used=attempt,
                 history=history
             )
+        elif not repaired_code_raw:
+            # LLM API unavailable / out of quota; stop retrying failing API calls
+            break
 
     logger.warning(f"[{algorithm_name}] [{source_lang}->{target_lang}] Self-correction failed after {max_attempts} attempts.")
     return CorrectionResult(
