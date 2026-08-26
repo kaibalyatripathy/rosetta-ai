@@ -13,8 +13,9 @@
     <div class="ambient-glow glow-left"></div>
     <div class="ambient-glow glow-right"></div>
 
-    <!-- Header Navigation with Multi-Page Tabs -->
-    <header class="top-nav">
+    <div class="app-shell">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
         <div class="brand">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
             <div class="brand-text">
@@ -25,9 +26,12 @@
 
         <!-- Multi-Page Navigation Bar -->
         <nav class="nav-pages">
+            <span class="nav-section-label">Workspace</span>
             <button class="nav-tab active" id="tab-studio" onclick="switchPage('studio')">
                 <span class="tab-icon">💻</span> Translation Studio
             </button>
+
+            <span class="nav-section-label">Reference</span>
             <button class="nav-tab" id="tab-knowledge" onclick="switchPage('knowledge')">
                 <span class="tab-icon">📚</span> Algorithm Encyclopedia
             </button>
@@ -38,7 +42,21 @@
                 <span class="tab-icon">📊</span> LLM Benchmarks
             </button>
         </nav>
-        
+
+        <div class="sidebar-footer">
+            <div class="sidebar-footer-tag">🧬 Neuro-Symbolic v2.4</div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-area">
+
+    <!-- Persistent Top Bar (visible across all pages) -->
+    <div class="top-bar">
+        <div class="top-bar-title">
+            <span class="top-bar-eyebrow">Rosetta AI Console</span>
+            <span class="top-bar-heading">Neuro-Symbolic Translation Platform</span>
+        </div>
         <div class="header-controls">
             <!-- Engine Mode Indicator Badge -->
             <div class="engine-badge" id="engine-badge" onclick="toggleEngineModal()" title="Click to view Neuro-Symbolic Architecture">
@@ -46,12 +64,14 @@
                 <span class="engine-text">HYBRID NEURO-SYMBOLIC</span>
                 <span class="engine-tag">AST + LLM</span>
             </div>
-            
+
             <div class="header-status">
                 <span class="status-dot"></span> Docker Sandbox Active
             </div>
         </div>
-    </header>
+    </div>
+
+    <div class="page-content">
 
     <!-- ================= PAGE 1: TRANSLATION STUDIO ================= -->
     <div id="page-studio" class="page-view active">
@@ -826,6 +846,10 @@ return -1</code></pre>
 
         </div>
     </div>
+
+    </div><!-- /page-content -->
+    </div><!-- /main-area -->
+    </div><!-- /app-shell -->
 
     <!-- Architecture Info Modal -->
     <div id="engine-modal" class="modal-overlay hidden" onclick="toggleEngineModal()">
