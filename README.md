@@ -493,5 +493,14 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 ---
 
 ## 👥 Authors & Acknowledgments
-* **Kaibalya Tripathy** — *System Architecture, Neuro-Symbolic Pipeline, GNN & AST Design*
-* Developed with **PyTorch**, **Tree-Sitter**, **Hugging Face**, **Docker**, and **FastAPI**.
+
+| Name | Role |
+| :--- | :--- |
+| **Tarak Nath Dey** | ML Architecture & Core Neuro-Symbolic Pipeline Lead |
+| **Abhimanyu Kumar** | Backend Development |
+| **Kaibalya Tripathy** | Frontend Development |
+| **Om Priya Sahoo** | Testing & Documentation |
+
+### 🌟 Acknowledgments
+* Developed with **PyTorch**, **Tree-Sitter**, **Hugging Face Transformers**, **Docker Engine**, and **FastAPI**.
+* Inspired by empirical research in compiler-guided code translation (*HumanEval-X*, *CodeXGLUE*, *BigCloneBench*).
