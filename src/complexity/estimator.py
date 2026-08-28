@@ -114,14 +114,16 @@ def _estimate_heuristic(code: str, lang: str) -> ComplexityEstimate:
     )
 
 
-def estimate_complexity(code: str, lang: str) -> ComplexityEstimate:
+def estimate_complexity(code: str, lang: str, fast_mode: bool = True) -> ComplexityEstimate:
     """
     Estimates time and space complexity of code using AST loop analysis, GNN structural signals, and LLM reasoning.
     """
-    # 1. AST Loop Depth Analysis
+    # 1. AST Loop Depth Analysis (Sub-millisecond native speed)
     ast_estimate = _estimate_heuristic(code, lang)
+    if fast_mode or ast_estimate.confidence_score >= 0.8:
+        return ast_estimate
 
-    # 2. LLM Reasoning Check (if API key available)
+    # 2. LLM Reasoning Check
     prompt = f"""Analyze the computational Big-O complexity of this {lang} code:
 ```
 {code}
@@ -135,9 +137,9 @@ TIME: <Big-O>
 SPACE: <Big-O>
 JUSTIFICATION: <sentence>
 """
-    llm_resp = call_local_llm(prompt)
+    llm_resp = call_gemini_llm(prompt)
     if not llm_resp:
-        llm_resp = call_gemini_llm(prompt)
+        llm_resp = call_local_llm(prompt)
         
     if llm_resp:
         m_time = re.search(r'TIME:\s*(O\([^\n]+\))', llm_resp, re.IGNORECASE)
