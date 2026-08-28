@@ -252,10 +252,9 @@ $$\begin{matrix}
 
 ## 🌐 APIs, Cloud Integrations & System Sandboxes
 
-* **Google Gemini API**:
-  * Utilizes `google.genai` (v1alpha API) and `google.generativeai` client libraries.
-  * Configured via `GEMINI_API_KEY` in `.env`.
-  * Fast timeout handling (`timeout=6.0s`) prevents hanging threads on network latency.
+* **Local Neural Inference Engine**:
+  * Utilizes optimized PyTorch, HuggingFace Transformers, and Tree-Sitter pipelines for fast, on-device neural code translation and AST representation.
+  * Supports high-throughput CPU/CUDA execution without external cloud dependencies.
 * **Docker Engine Sandbox API**:
   * Communicates directly with the Docker daemon via standard CLI subprocess runners.
   * Spawns ephemeral containers (`docker run --rm --network none --memory 256m --cpus 1.0 rosetta-sandbox:latest`).
@@ -342,7 +341,7 @@ S_{\text{round\_trip}} &= \begin{cases} 15.0 & \text{if } A \rightarrow B \right
 
 ```
 rosetta-ai/
-├── .env.example                     # Environment template (GEMINI_API_KEY, DOCKER_HOST)
+├── .env.example                     # Environment template (PORT, DOCKER_HOST, LOG_LEVEL)
 ├── requirements.txt                 # Core Python dependencies
 ├── README.md                        # Master project documentation (The Brain)
 ├── docker/
@@ -432,26 +431,18 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Configuration (`.env`)
-Create a `.env` file in the root directory (or copy from `.env.example`):
-```env
-# Optional: Google Gemini API Key for high-capacity remote model assistance
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-*(Note: If `GEMINI_API_KEY` is omitted, Rosetta AI automatically utilizes the local `Qwen2.5-Coder-1.5B` pipeline and deterministic AST rule repair engines).*
-
-### 4. Build Docker Sandbox Image (Optional)
+### 3. Build Docker Sandbox Image (Optional)
 ```bash
 docker build -t rosetta-sandbox:latest -f docker/sandbox.Dockerfile .
 ```
 
-### 5. Launch the Web Studio & API Server
+### 4. Launch the Web Studio & API Server
 ```bash
 python -m uvicorn src.api.main:app --reload --host 127.0.0.1 --port 8000
 ```
 Open your browser and navigate to: **`http://127.0.0.1:8000/`**
 
-### 6. Running Automated Test Suites
+### 5. Running Automated Test Suites
 ```bash
 # Run all unit and integration tests
 pytest tests/ -v

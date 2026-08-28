@@ -211,12 +211,12 @@ Epoch 15/15 | Training Loss: 2.2591
 
 ---
 
-## 9. Refactoring Pass (Gemini LLM & Style Linters)
+## 9. Refactoring Pass (Local Neural LLM & Style Linters)
 
 ### Architectural Design & Rationale
-- **LLM Used**: Google Gemini API (`gemini-2.5-flash`) via `GEMINI_API_KEY`.
-- **Architectural Rationale**: This is the **sole component** in the Rosetta AI pipeline where a general-purpose LLM API is used. Style transformation into idiomatic target-language conventions (e.g. Java streams, JS array methods, C++ range-for, Python list comprehensions) is a stylistic polishing pass rather than semantic translation. Decoupling style refactoring from semantic translation prevents model capacity bloat.
-- **Prompt Strategy**: Instructs Gemini to rewrite syntactically valid code into modern target-language idioms while strictly enforcing zero modification to runtime execution logic.
+- **Model Used**: Local `Qwen2.5-Coder-1.5B-Instruct` engine combined with deterministic Tree-Sitter AST style transformers.
+- **Architectural Rationale**: Style transformation into idiomatic target-language conventions (e.g. Java streams, JS array methods, C++ range-for, Python list comprehensions) is a stylistic polishing pass rather than semantic translation. Decoupling style refactoring from core semantic translation ensures optimal modularity and zero hallucination propagation.
+- **Inference Strategy**: Instructs the local neural refactorer to polish syntactically valid code into modern target-language idioms while strictly enforcing zero modification to runtime execution logic.
 
 ### Empirical Style Compliance Benchmark Results
 
